@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Калькулятор досрочного погашения кредита — НаборНаВсе</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
+    --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
+    --radius:10px; --font-body:'Inter', -apple-system, Segoe UI, Roboto, sans-serif; --sidebar-w:270px;
+    --shadow:0 1px 2px rgba(20,24,30,.03), 0 10px 24px -16px rgba(20,24,30,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+      --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+    --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;}
+  body.nav-open .sidebar{transform:translateX(0);}
+  .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+  .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
+  .sidebar-title:first-child{margin-top:0;}
+  .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .sidebar a:hover{background:var(--bg);}
+  .sidebar span.soon{color:var(--ink-faint);}
+  .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
+  body.nav-open .backdrop{opacity:1;pointer-events:auto;}
+  .page{min-height:100vh;}
+  .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .site-header-inner{max-width:900px;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .menu-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .logo{font-weight:700;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:1;}
+  .theme-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+  header.page-head{padding:1.3rem 0 1.1rem;}
+  .brand{font-size:12px;color:var(--ink-faint);margin:0 0 .4rem;}
+  h1{font-weight:700;font-size:clamp(24px,3.6vw,32px);line-height:1.2;margin:0 0 .35rem;max-width:20ch;}
+  .lede{color:var(--ink-soft);font-size:13.5px;line-height:1.45;max-width:54ch;margin:0;}
+  .panel{display:grid;grid-template-columns:1.1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  @media (max-width:720px){ .panel{grid-template-columns:1fr;} }
+  .inputs{padding:1.3rem 1.3rem;border-right:1px solid var(--line);}
+  @media (max-width:720px){ .inputs{border-right:none;border-bottom:1px solid var(--line);} }
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:1rem;}
+  .seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font-family:var(--font-body);font-size:13px;padding:.5rem;border-radius:6px;cursor:pointer;}
+  .seg button.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+  .label-row{display:flex;align-items:center;margin-bottom:.5rem;}
+  .label-row label{font-size:13.5px;color:var(--ink-soft);}
+  .info-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;
+    border:1px solid var(--ink-faint);color:var(--ink-faint);background:transparent;font-size:11px;cursor:pointer;margin-left:6px;flex-shrink:0;line-height:1;padding:0;}
+  .info-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .field{margin-bottom:.6rem;background:var(--bg);border-radius:10px;padding:.8rem .9rem .85rem;}
+  .field:last-child{margin-bottom:0;}
+  .field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;gap:8px;}
+  .field-top label{font-size:13.5px;color:var(--ink-soft);}
+  .val-input{font-family:var(--font-body);font-weight:600;font-size:15.5px;text-align:right;background:transparent;
+    border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);width:13ch;padding:2px 2px;font-variant-numeric:tabular-nums;cursor:text;}
+  .val-input:hover{border-bottom-color:var(--accent);}
+  .val-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--line);border-radius:3px;outline:none;margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .menu-btn:hover, .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .seg button:hover:not(.active){color:var(--ink);}
+  .info-btn:active, .menu-btn:active, .theme-btn:active{transform:scale(.94);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  .range-labels{display:flex;justify-content:space-between;margin-top:.3rem;}
+  .range-labels span{font-size:11.5px;color:var(--ink-faint);}
+  .hint{font-size:11px;color:var(--ink-faint);margin:.6rem 0 0;}
+  .results{padding:1.3rem 1.3rem;background:var(--accent-soft);}
+  .panel-eyebrow{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:0 0 1.3rem;}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .result-label{font-size:12.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .result-big{font-weight:700;font-size:clamp(28px,4.2vw,36px);line-height:1;margin:0 0 1.5rem;font-variant-numeric:tabular-nums;}
+  .result-big small{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:6px;}
+  .stat-row{display:flex;justify-content:space-between;padding:.65rem 0;border-top:1px solid var(--line);}
+  .stat-row:first-of-type{border-top:none;}
+  .stat-row .k{font-size:13px;color:var(--ink-soft);}
+  .stat-row .v{font-size:14px;font-variant-numeric:tabular-nums;font-weight:500;}
+  .stat-row .v.good{color:var(--accent);font-weight:700;}
+  article{max-width:64ch;margin:2rem auto 0;padding:1.7rem 0 2.2rem;border-top:1px solid var(--line);}
+  article h2{font-weight:700;font-size:20px;margin:0 0 .8rem;}
+  article h2 + p{margin-top:0;}
+  article p{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;}
+  article strong{color:var(--ink);font-weight:600;}
+  .disclaimer{font-size:12.5px;color:var(--ink-faint);margin-top:1.8rem;}
+  .site-footer{border-top:1px solid var(--line);padding:1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:1rem;}
+  .site-footer p{font-size:12.5px;color:var(--ink-faint);margin:0;}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,17,20,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;display:flex;align-items:center;justify-content:center;padding:1.2rem;}
+  .modal-backdrop.open{opacity:1;pointer-events:auto;}
+  .modal{background:var(--surface);border-radius:12px;max-width:420px;width:100%;padding:1.5rem 1.5rem 1.3rem;border:1px solid var(--line);box-shadow:0 20px 60px -20px rgba(0,0,0,.35);transform:translateY(8px);transition:transform .2s;}
+  .modal-backdrop.open .modal{transform:translateY(0);}
+  .modal h3{margin:0 0 .7rem;font-size:16px;}
+  .modal p{margin:0 0 .6rem;color:var(--ink-soft);font-size:13.5px;line-height:1.6;}
+  .modal-close{margin-top:.4rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:.45rem 1rem;border-radius:7px;font-size:13px;cursor:pointer;}
+  @media (max-width:640px){ .sidebar{width:84vw;max-width:300px;} }
+</style>
+</head>
+<body>
+
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
+  <a href="/" class="sidebar-home">НаборНаВсе — главная</a>
+  <p class="sidebar-title">Кредиты и ипотека</p>
+  <a href="/ipoteka-calculator.html">Ипотечный платёж</a>
+  <a href="/dosrochnoe-pogashenie.html" class="active">Досрочное погашение</a>
+  <a href="/kreditny-kalkulyator.html">Кредитный калькулятор</a>
+  <span class="soon">Рефинансирование<small>скоро</small></span>
+  <p class="sidebar-title">Налоги и работа</p>
+  <a href="/zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
+  <p class="sidebar-title">Даты и проценты</p>
+  <a href="/protsenty-kalkulyator.html">Калькулятор процентов</a>
+  <a href="/dni-mezhdu-datami.html">Дни между датами</a>
+  <a href="/kalkulyator-vozrasta.html">Калькулятор возраста</a>
+  <p class="sidebar-title">Конвертеры</p>
+  <a href="/konverter-izobrazheniy.html">Универсальный конвертер изображений</a>
+  <a href="/izmenenie-razmera.html">Изменение размера изображений</a>
+  <a href="/obrezka-izobrazheniy.html">Обрезка изображений</a>
+  <a href="/konverter-temperatury.html">Универсальный конвертер температуры</a>
+  <a href="/konverter-dliny.html">Универсальный конвертер длины</a>
+  <span class="soon">PDF в JPG<small>скоро</small></span>
+  <p class="sidebar-title">Видео</p>
+  <a href="/redaktor-video.html">Редактор видео</a>
+</nav>
+
+<div class="page" id="page">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Меню инструментов">☰</button>
+      <a class="logo" href="/">НаборНаВсе</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Переключить тему">◐</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="page-head">
+      <p class="brand">Финансовые калькуляторы</p>
+      <h1>Калькулятор досрочного погашения кредита</h1>
+      <p class="lede">Узнайте, сколько сэкономите на процентах, если внесёте досрочный платёж — и как это отразится на сроке или размере платежа.</p>
+    </header>
+
+    <div class="panel">
+      <div class="inputs">
+        <p class="panel-eyebrow">Параметры кредита</p>
+        <div class="label-row"><label>Что изменить при досрочном платеже</label><button class="info-btn" type="button" data-term="mode">?</button></div>
+        <div class="seg" id="modeToggle">
+          <button class="active" data-mode="term">Сократить срок</button>
+          <button data-mode="payment">Уменьшить платёж</button>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="balance">Остаток долга</label><input class="val-input" id="balanceVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="balance" min="100000" max="30000000" step="50000" value="4500000">
+          <div class="range-labels"><span>100 тыс.</span><span>30 млн</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="rate">Процентная ставка</label><input class="val-input" id="rateVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="rate" min="1" max="30" step="0.1" value="16">
+          <div class="range-labels"><span>1%</span><span>30%</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="term">Оставшийся срок</label><input class="val-input" id="termVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="term" min="1" max="30" step="1" value="18">
+          <div class="range-labels"><span>1 год</span><span>30 лет</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="extra">Сумма досрочного платежа</label><input class="val-input" id="extraVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="extra" min="0" max="5000000" step="10000" value="500000">
+          <div class="range-labels"><span>0 ₽</span><span>5 млн</span></div>
+        </div>
+        <p class="hint">Значение можно ввести вручную — кликните по числу.</p>
+      </div>
+
+      <div class="results">
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат расчёта</p>
+        <p class="live-badge"><span class="live-dot"></span>Пересчитывается автоматически</p>
+        <p class="result-label" id="resultLabel">Экономия на процентах</p>
+        <p class="result-big" id="mainResult">612 400 ₽</p>
+
+        <div class="stat-row"><span class="k">Текущий платёж</span><span class="v" id="statOldPay">—</span></div>
+        <div class="stat-row"><span class="k" id="newFieldLabel">Новый срок</span><span class="v good" id="statNewField">—</span></div>
+        <div class="stat-row"><span class="k">Переплата без досрочного</span><span class="v" id="statOldInterest">—</span></div>
+        <div class="stat-row"><span class="k">Переплата с досрочным</span><span class="v" id="statNewInterest">—</span></div>
+      </div>
+    </div>
+
+    <article>
+      <h2>Как это работает</h2>
+      <p>Досрочный платёж уменьшает остаток долга сразу — и дальше проценты банк начисляет уже на меньшую сумму. Есть два варианта, куда направить эту экономию: <strong>сократить срок</strong> кредита, оставив прежний ежемесячный платёж, либо <strong>уменьшить сам платёж</strong>, оставив срок прежним.</p>
+      <p>Сокращение срока обычно даёт бОльшую экономию на процентах в деньгах, а уменьшение платежа — облегчает ежемесячную финансовую нагрузку. Выбор зависит от того, что важнее в моменте.</p>
+      <p class="disclaimer">Расчёт приблизительный и не учитывает возможные комиссии банка за досрочное погашение или изменение условий кредита.</p>
+    </article>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© НаборНаВсе — справочные финансовые калькуляторы. Не является финансовой консультацией.</p></div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">—</h3>
+    <div id="modalBody"></div>
+    <button class="modal-close" id="modalClose">Понятно</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TERMS = { mode: { title:'Сократить срок или уменьшить платёж', html:'<p><strong>Сократить срок</strong> — платёж остаётся прежним, но кредит закрывается раньше. Обычно выгоднее по общей сумме процентов.</p><p><strong>Уменьшить платёж</strong> — срок остаётся прежним, но ежемесячный платёж становится меньше. Выгоднее, если важно снизить текущую нагрузку на бюджет.</p>' } };
+  var modalBackdrop=document.getElementById('modalBackdrop'), modalTitle=document.getElementById('modalTitle'), modalBody=document.getElementById('modalBody');
+  function openModal(t){ modalTitle.textContent=t.title; modalBody.innerHTML=t.html; modalBackdrop.classList.add('open'); }
+  function closeModal(){ modalBackdrop.classList.remove('open'); }
+  document.querySelectorAll('.info-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal(TERMS[btn.dataset.term]); }); });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop');
+  menuBtn.addEventListener('click', function(){ document.body.classList.toggle('nav-open'); });
+  backdrop.addEventListener('click', function(){ document.body.classList.remove('nav-open'); });
+
+  try{ var saved=localStorage.getItem('podschet-theme'); if(saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var next = cur==='dark' ? 'light' : (cur==='light' ? null : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+    if(next){ document.documentElement.setAttribute('data-theme', next); } else { document.documentElement.removeAttribute('data-theme'); }
+    try{ localStorage.setItem('podschet-theme', next || ''); }catch(e){}
+  });
+
+  var balance=document.getElementById('balance'), rate=document.getElementById('rate'), term=document.getElementById('term'), extra=document.getElementById('extra');
+  var balanceVal=document.getElementById('balanceVal'), rateVal=document.getElementById('rateVal'), termVal=document.getElementById('termVal'), extraVal=document.getElementById('extraVal');
+  var mainResult=document.getElementById('mainResult'), resultLabel=document.getElementById('resultLabel');
+  var statOldPay=document.getElementById('statOldPay'), statNewField=document.getElementById('statNewField'), newFieldLabel=document.getElementById('newFieldLabel');
+  var statOldInterest=document.getElementById('statOldInterest'), statNewInterest=document.getElementById('statNewInterest');
+  var mode='term';
+  document.querySelectorAll('#modeToggle button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#modeToggle button').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active'); mode=btn.dataset.mode; calc();
+    });
+  });
+
+  function money(n){ return Math.round(n).toLocaleString('ru-RU') + ' \u20BD'; }
+  function pct(n){ return n.toFixed(1).replace('.',',') + '%'; }
+  function pluralYears(n){ var m10=n%10,m100=n%100; if(m10===1&&m100!==11) return n+' год'; if(m10>=2&&m10<=4&&(m100<10||m100>=20)) return n+' года'; return n+' лет'; }
+  function pluralMonths(n){ var m10=n%10,m100=n%100; if(m10===1&&m100!==11) return n+' мес.'; return n+' мес.'; }
+
+  function paintRange(el){
+    var min=parseFloat(el.min), max=parseFloat(el.max), val=parseFloat(el.value);
+    var p=Math.min(100,Math.max(0,(val-min)/(max-min)*100));
+    el.style.background='linear-gradient(to right, var(--accent) '+p+'%, var(--line) '+p+'%)';
+  }
+  function makeEditable(rangeEl, valEl, min, max, formatDisplay, formatEdit){
+    function sync(){ valEl.value = formatDisplay(parseFloat(rangeEl.value)); paintRange(rangeEl); }
+    rangeEl.addEventListener('input', function(){ sync(); calc(); });
+    valEl.addEventListener('focus', function(){ valEl.value = formatEdit(parseFloat(rangeEl.value)); valEl.select(); });
+    function commit(){
+      var raw = valEl.value.replace(',', '.').replace(/[^0-9.\-]/g,'');
+      var num = parseFloat(raw); if(isNaN(num)) num = parseFloat(rangeEl.value);
+      num = Math.min(max, Math.max(min, num)); rangeEl.value = num; sync(); calc();
+    }
+    valEl.addEventListener('blur', commit);
+    valEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ valEl.blur(); } });
+    sync();
+  }
+  makeEditable(balance, balanceVal, 100000, 30000000, money, function(v){return String(Math.round(v));});
+  makeEditable(rate, rateVal, 1, 30, pct, function(v){return String(v);});
+  makeEditable(term, termVal, 1, 30, function(v){return pluralYears(Math.round(v));}, function(v){return String(Math.round(v));});
+  makeEditable(extra, extraVal, 0, 5000000, money, function(v){return String(Math.round(v));});
+
+  function annuity(P,i,n){ return i===0 ? P/n : P*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1); }
+
+  function calc(){
+    var P=parseFloat(balance.value), annualRate=parseFloat(rate.value), years=parseInt(term.value,10), E=Math.min(parseFloat(extra.value), P);
+    var n=years*12, i=annualRate/100/12;
+    var M0=annuity(P,i,n);
+    var oldInterest=M0*n-P;
+    statOldPay.textContent=money(M0);
+    statOldInterest.textContent=money(oldInterest);
+
+    var P2=P-E, newInterest, savings;
+    if(mode==='term'){
+      var n2 = i===0 ? P2/M0 : Math.log(1/(1-(i*P2)/M0)) / Math.log(1+i);
+      n2 = Math.max(0, Math.round(n2));
+      newInterest = E + M0*n2 - P;
+      var yrs=Math.floor(n2/12), mos=n2%12;
+      newFieldLabel.textContent='Новый срок';
+      statNewField.textContent = yrs>0 ? (pluralYears(yrs) + (mos>0 ? ' ' + pluralMonths(mos) : '')) : pluralMonths(mos);
+    } else {
+      var Mnew=annuity(P2,i,n);
+      newInterest = E + Mnew*n - P;
+      newFieldLabel.textContent='Новый платёж';
+      statNewField.textContent = money(Mnew);
+    }
+    savings = oldInterest - newInterest;
+    resultLabel.textContent='Экономия на процентах';
+    mainResult.textContent=money(Math.max(0,savings));
+    statNewInterest.textContent=money(Math.max(0,newInterest));
+  }
+  calc();
+})();
+</script>
+</body>
+</html>

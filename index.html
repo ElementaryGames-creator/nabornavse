@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>НаборНаВсе — финансовые калькуляторы и конвертеры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
+    --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
+    --radius:10px; --font-body:'Inter', -apple-system, Segoe UI, Roboto, sans-serif; --sidebar-w:270px;
+    --shadow:0 1px 2px rgba(20,24,30,.03), 0 10px 24px -16px rgba(20,24,30,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+      --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+    --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;}
+  body.nav-open .sidebar{transform:translateX(0);}
+  .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
+  .sidebar-title:first-child{margin-top:0;}
+  .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .sidebar a:hover{background:var(--bg);}
+  .sidebar span.soon{color:var(--ink-faint);}
+  .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+  .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
+  body.nav-open .backdrop{opacity:1;pointer-events:auto;}
+  .page{min-height:100vh;}
+  .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .site-header-inner{max-width:900px;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .menu-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .menu-btn:hover,.theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .menu-btn:active,.theme-btn:active{transform:scale(.94);}
+  .logo{font-weight:700;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:1;}
+  .theme-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+  header.page-head{padding:1.8rem 0 1.4rem;}
+  .brand{font-size:12px;color:var(--ink-faint);margin:0 0 .4rem;}
+  h1{font-weight:700;font-size:clamp(24px,3.6vw,32px);line-height:1.2;margin:0 0 .5rem;max-width:22ch;}
+  .lede{color:var(--ink-soft);font-size:14.5px;line-height:1.5;max-width:56ch;margin:0;}
+  .section-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:2rem 0 .9rem;}
+  .section-title:first-of-type{margin-top:.4rem;}
+  .tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+  @media (max-width:560px){ .tool-grid{grid-template-columns:1fr;} }
+  .tool-card{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:1.1rem 1.2rem;text-decoration:none;color:inherit;box-shadow:var(--shadow);transition:border-color .15s;}
+  .tool-card:hover{border-color:var(--accent);}
+  .tool-card h3{margin:0 0 .35rem;font-size:15px;font-weight:600;color:var(--ink);}
+  .tool-card p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.5;}
+  .tool-card.soon{opacity:.55;cursor:default;}
+  .tool-card.soon:hover{border-color:var(--line);}
+  .tag-soon{display:inline-block;font-size:10.5px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--ink-faint);margin-top:.5rem;}
+  .site-footer{border-top:1px solid var(--line);padding:1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:2.2rem;}
+  .site-footer p{font-size:12.5px;color:var(--ink-faint);margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  @media (max-width:640px){ .sidebar{width:84vw;max-width:300px;} }
+</style>
+</head>
+<body>
+
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
+  <a href="/" class="sidebar-home">НаборНаВсе — главная</a>
+  <p class="sidebar-title">Кредиты и ипотека</p>
+  <a href="/ipoteka-calculator.html">Ипотечный платёж</a>
+  <a href="/dosrochnoe-pogashenie.html">Досрочное погашение</a>
+  <a href="/kreditny-kalkulyator.html">Кредитный калькулятор</a>
+  <span class="soon">Рефинансирование<small>скоро</small></span>
+  <p class="sidebar-title">Налоги и работа</p>
+  <a href="/zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
+  <p class="sidebar-title">Даты и проценты</p>
+  <a href="/protsenty-kalkulyator.html">Калькулятор процентов</a>
+  <a href="/dni-mezhdu-datami.html">Дни между датами</a>
+  <a href="/kalkulyator-vozrasta.html">Калькулятор возраста</a>
+  <p class="sidebar-title">Конвертеры</p>
+  <a href="/konverter-izobrazheniy.html">Универсальный конвертер изображений</a>
+  <a href="/izmenenie-razmera.html">Изменение размера изображений</a>
+  <a href="/obrezka-izobrazheniy.html">Обрезка изображений</a>
+  <a href="/konverter-temperatury.html">Универсальный конвертер температуры</a>
+  <a href="/konverter-dliny.html">Универсальный конвертер длины</a>
+  <span class="soon">PDF в JPG<small>скоро</small></span>
+  <p class="sidebar-title">Видео</p>
+  <a href="/redaktor-video.html">Редактор видео</a>
+</nav>
+
+<div class="page" id="page">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Меню инструментов">☰</button>
+      <a class="logo" href="#">НаборНаВсе</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Переключить тему">◐</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="page-head">
+      <p class="brand">НаборНаВсе</p>
+      <h1>Калькуляторы и конвертеры в одном месте</h1>
+      <p class="lede">Бесплатные инструменты для расчётов, дат, единиц измерения, изображений и видео — без регистрации, прямо в браузере.</p>
+    </header>
+
+    <p class="section-title">Кредиты и ипотека</p>
+    <div class="tool-grid">
+      <a class="tool-card" href="/ipoteka-calculator.html">
+        <h3>Ипотечный платёж</h3>
+        <p>Ежемесячный платёж, переплата и график — аннуитет и дифференцированный.</p>
+      </a>
+      <a class="tool-card" href="/dosrochnoe-pogashenie.html">
+        <h3>Досрочное погашение</h3>
+        <p>Сколько сэкономите, если сократить срок или уменьшить платёж.</p>
+      </a>
+      <a class="tool-card" href="/kreditny-kalkulyator.html">
+        <h3>Кредитный калькулятор (потребительский)</h3>
+        <p>Платёж и переплата по обычному потребительскому кредиту.</p>
+      </a>
+      <div class="tool-card soon"><h3>Автокредит</h3><p>Платёж и переплата по кредиту на автомобиль.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Переплата по кредиту</h3><p>Сколько реально отдадите сверх тела кредита.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Аннуитетный и дифференцированный платёж</h3><p>Два вида платежа отдельными разборами.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>График платежей со скачиванием</h3><p>Помесячный график — можно сохранить файлом.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Рефинансирование</h3><p>Сравнение текущего кредита с новой ставкой.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Ипотека с материнским капиталом</h3><p>На какую сумму можно рассчитывать с учётом капитала.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Кредитная карта и льготный период</h3><p>Проценты и беспроцентный период по карте.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Полная стоимость кредита (ПСК)</h3><p>Реальная ставка с учётом всех комиссий.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Долговая нагрузка</h3><p>Отношение платежей по кредитам к доходу.</p><span class="tag-soon">скоро</span></div>
+    </div>
+
+    <p class="section-title">Вклады и накопления</p>
+    <div class="tool-grid">
+      <div class="tool-card soon"><h3>Вклад и сложный процент</h3><p>Доходность простого вклада с капитализацией процентов.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Пополняемый вклад</h3><p>Доходность вклада с регулярными довнесениями.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Накопления на цель</h3><p>Сколько откладывать в месяц, чтобы накопить к сроку.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Калькулятор инфляции</h3><p>Сколько стоили деньги в прошлом году или раньше.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Пенсия и финансовая независимость</h3><p>Когда накоплений хватит жить на проценты.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Доходность инвестиций</h3><p>Итоговая доходность с учётом срока и взносов.</p><span class="tag-soon">скоро</span></div>
+    </div>
+
+    <p class="section-title">Налоги и работа</p>
+    <div class="tool-grid">
+      <a class="tool-card" href="/zarplata-ndfl.html">
+        <h3>Зарплата на руки (НДФЛ)</h3>
+        <p>Из «грязной» в «чистую» и обратно, по прогрессивной шкале 2026 года.</p>
+      </a>
+      <div class="tool-card soon"><h3>Отпускные</h3><p>Расчёт отпускных по среднему заработку.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Больничный</h3><p>Выплата по больничному листу по стажу.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Компенсация при увольнении</h3><p>Выходное пособие и отпускные по ТК РФ.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Компенсация за неиспользованный отпуск</h3><p>Сколько заплатят за неотгуленные дни.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Вычет за лечение</h3><p>Налоговый вычет за медицинские услуги и лекарства.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Вычет за обучение</h3><p>Налоговый вычет за своё или детское образование.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Вычет по ипотечным процентам</h3><p>Возврат НДФЛ с процентов, уплаченных банку.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Вычет за покупку квартиры</h3><p>Имущественный вычет при покупке жилья.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>НДС</h3><p>Выделить или начислить НДС на сумму.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Налог с продажи квартиры или авто</h3><p>Нужно ли платить и сколько после продажи.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Транспортный, земельный, имущественный налог</h3><p>Расчёт по трём основным имущественным налогам.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Налоги для самозанятых и ИП</h3><p>НПД, УСН и патент — сколько платить.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Вычет по ИИС</h3><p>Налоговый вычет на индивидуальный инвестсчёт.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Пособие по беременности и родам</h3><p>Расчёт декретной выплаты.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Страховой стаж</h3><p>Подсчёт стажа по трудовой книжке.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Госпошлина</h3><p>Размер пошлины для типовых ситуаций.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Пени по ЖКХ и налогам</h3><p>Пени и проценты по ст. 395 ГК РФ.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Алименты</h3><p>Процент от дохода на одного и более детей.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Коммунальные платежи</h3><p>Расчёт платежей по тарифам и нормативам.</p><span class="tag-soon">скоро</span></div>
+    </div>
+
+    <p class="section-title">Даты, числа и проценты</p>
+    <div class="tool-grid">
+      <a class="tool-card" href="/protsenty-kalkulyator.html">
+        <h3>Калькулятор процентов</h3>
+        <p>Процент от числа и наоборот, изменение числа на процент.</p>
+      </a>
+      <a class="tool-card" href="/dni-mezhdu-datami.html">
+        <h3>Сколько дней между датами</h3>
+        <p>Разница между двумя датами в днях, неделях и месяцах.</p>
+      </a>
+      <a class="tool-card" href="/kalkulyator-vozrasta.html">
+        <h3>Калькулятор возраста</h3>
+        <p>Точный возраст в годах, месяцах и днях.</p>
+      </a>
+      <div class="tool-card soon"><h3>Прибавить или вычесть дни из даты</h3><p>Дата через N дней или до неё.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Минуты в часы и часовые пояса</h3><p>Перевод времени и поясов.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Рабочие дни в месяце</h3><p>Производственный календарь с праздниками.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Римские цифры и системы счисления</h3><p>Перевод между системами счисления.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Дроби и округление</h3><p>Действия с дробями и правила округления.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Пропорции и правило трёх</h3><p>Решение пропорций по трём известным.</p><span class="tag-soon">скоро</span></div>
+    </div>
+
+    <p class="section-title">Конвертеры</p>
+    <div class="tool-grid">
+      <a class="tool-card" href="/konverter-izobrazheniy.html">
+        <h3>Универсальный конвертер изображений</h3>
+        <p>PNG, JPG и WebP — сразу несколько файлов, прямо в браузере.</p>
+      </a>
+      <a class="tool-card" href="/izmenenie-razmera.html">
+        <h3>Изменение размера изображений</h3>
+        <p>Новая ширина и высота в пикселях для JPG, PNG, SVG и GIF — пакетно.</p>
+      </a>
+      <a class="tool-card" href="/obrezka-izobrazheniy.html">
+        <h3>Обрезка изображений</h3>
+        <p>Классическая рамка обрезки с точным вводом в пикселях.</p>
+      </a>
+      <a class="tool-card" href="/konverter-temperatury.html">
+        <h3>Универсальный конвертер температуры</h3>
+        <p>Цельсий, Фаренгейт и Кельвин — одновременно.</p>
+      </a>
+      <a class="tool-card" href="/konverter-dliny.html">
+        <h3>Универсальный конвертер длины</h3>
+        <p>Миллиметры, сантиметры, метры, километры, дюймы, футы.</p>
+      </a>
+      <div class="tool-card soon"><h3>Вес, объём, площадь, скорость</h3><p>Единицы измерения для бытовых и технических задач.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Давление, энергия, данные</h3><p>Паскали/атмосферы, джоули/калории, МБ/ГБ.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Размеры одежды и обуви</h3><p>Перевод между российскими и зарубежными размерами.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Кулинарные меры</h3><p>Стаканы и ложки в граммы и миллилитры.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Дюймы в сантиметры</h3><p>Отдельная узкая страница под частый запрос.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Мили в километры</h3><p>Отдельная узкая страница под частый запрос.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Фунты в килограммы</h3><p>Отдельная узкая страница под частый запрос.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>HEIC в JPG</h3><p>Конвертация фото с iPhone в привычный формат.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>JPG в PDF</h3><p>Собрать одну или несколько картинок в PDF-файл.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Сжатие изображения</h3><p>Уменьшение веса файла без явной потери качества.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Объединение и сжатие PDF</h3><p>Склейка нескольких PDF и уменьшение размера.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>PDF в JPG</h3><p>Страницы PDF-документа в отдельные изображения.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Счётчик символов и слов</h3><p>Подсчёт длины текста для соцсетей и форм.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Смена регистра и транслитерация</h3><p>ВЕРХНИЙ/нижний регистр и транслит текста.</p><span class="tag-soon">скоро</span></div>
+    </div>
+
+    <p class="section-title">Видео</p>
+    <div class="tool-grid">
+      <a class="tool-card" href="/redaktor-video.html">
+        <h3>Редактор видео онлайн</h3>
+        <p>Обрезка, склейка роликов по порядку и наложение музыки — прямо в браузере.</p>
+      </a>
+      <div class="tool-card soon"><h3>Сжатие видео</h3><p>Уменьшение веса видеофайла без потери качества на глаз.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Видео в GIF</h3><p>Короткий фрагмент ролика в анимированную картинку.</p><span class="tag-soon">скоро</span></div>
+      <div class="tool-card soon"><h3>Извлечь звук из видео</h3><p>Сохранить аудиодорожку из ролика отдельным файлом.</p><span class="tag-soon">скоро</span></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. Не является финансовой консультацией.</p></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop'), sidebarClose=document.getElementById('sidebarClose');
+  function openNav(){ document.body.classList.add('nav-open'); document.body.style.overflow='hidden'; }
+  function closeNav(){ document.body.classList.remove('nav-open'); document.body.style.overflow=''; }
+  menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
+  backdrop.addEventListener('click', closeNav);
+  sidebarClose.addEventListener('click', closeNav);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeNav(); });
+
+  try{ var saved=localStorage.getItem('podschet-theme'); if(saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var next = cur==='dark' ? 'light' : (cur==='light' ? null : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+    if(next){ document.documentElement.setAttribute('data-theme', next); } else { document.documentElement.removeAttribute('data-theme'); }
+    try{ localStorage.setItem('podschet-theme', next || ''); }catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

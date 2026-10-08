@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>НаборНаВсе — финансовые калькуляторы и конвертеры</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/inter-600.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/inter-700.woff2') format('woff2');}
   :root{
     --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
     --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
@@ -84,6 +85,9 @@
   <a href="/dosrochnoe-pogashenie.html">Досрочное погашение</a>
   <a href="/kreditny-kalkulyator.html">Кредитный калькулятор</a>
   <span class="soon">Рефинансирование<small>скоро</small></span>
+  <p class="sidebar-title">Вклады и накопления</p>
+  <a href="/vklad-protsenty.html">Вклад с капитализацией</a>
+  <a href="/nakopleniya-na-tsel.html">Накопления на цель</a>
   <p class="sidebar-title">Налоги и работа</p>
   <a href="/zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
   <p class="sidebar-title">Даты и проценты</p>
@@ -96,6 +100,7 @@
   <a href="/obrezka-izobrazheniy.html">Обрезка изображений</a>
   <a href="/konverter-temperatury.html">Универсальный конвертер температуры</a>
   <a href="/konverter-dliny.html">Универсальный конвертер длины</a>
+  <a href="/konverter-materialov.html">Площадь в материалы для ремонта</a>
   <span class="soon">PDF в JPG<small>скоро</small></span>
   <p class="sidebar-title">Видео</p>
   <a href="/redaktor-video.html">Редактор видео</a>
@@ -144,9 +149,15 @@
 
     <p class="section-title">Вклады и накопления</p>
     <div class="tool-grid">
-      <div class="tool-card soon"><h3>Вклад и сложный процент</h3><p>Доходность простого вклада с капитализацией процентов.</p><span class="tag-soon">скоро</span></div>
+      <a class="tool-card" href="/vklad-protsenty.html">
+        <h3>Вклад и сложный процент</h3>
+        <p>Доходность простого вклада с капитализацией процентов.</p>
+      </a>
       <div class="tool-card soon"><h3>Пополняемый вклад</h3><p>Доходность вклада с регулярными довнесениями.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Накопления на цель</h3><p>Сколько откладывать в месяц, чтобы накопить к сроку.</p><span class="tag-soon">скоро</span></div>
+      <a class="tool-card" href="/nakopleniya-na-tsel.html">
+        <h3>Накопления на цель</h3>
+        <p>Сколько откладывать в месяц, чтобы накопить к сроку.</p>
+      </a>
       <div class="tool-card soon"><h3>Калькулятор инфляции</h3><p>Сколько стоили деньги в прошлом году или раньше.</p><span class="tag-soon">скоро</span></div>
       <div class="tool-card soon"><h3>Пенсия и финансовая независимость</h3><p>Когда накоплений хватит жить на проценты.</p><span class="tag-soon">скоро</span></div>
       <div class="tool-card soon"><h3>Доходность инвестиций</h3><p>Итоговая доходность с учётом срока и взносов.</p><span class="tag-soon">скоро</span></div>
@@ -223,6 +234,10 @@
         <h3>Универсальный конвертер длины</h3>
         <p>Миллиметры, сантиметры, метры, километры, дюймы, футы.</p>
       </a>
+      <a class="tool-card" href="/konverter-materialov.html">
+        <h3>Площадь в материалы для ремонта</h3>
+        <p>Плитка, ламинат, обои или краска — сколько упаковок нужно на площадь, с запасом.</p>
+      </a>
       <div class="tool-card soon"><h3>Вес, объём, площадь, скорость</h3><p>Единицы измерения для бытовых и технических задач.</p><span class="tag-soon">скоро</span></div>
       <div class="tool-card soon"><h3>Давление, энергия, данные</h3><p>Паскали/атмосферы, джоули/калории, МБ/ГБ.</p><span class="tag-soon">скоро</span></div>
       <div class="tool-card soon"><h3>Размеры одежды и обуви</h3><p>Перевод между российскими и зарубежными размерами.</p><span class="tag-soon">скоро</span></div>
@@ -252,7 +267,7 @@
   </div>
 
   <footer class="site-footer">
-    <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. Не является финансовой консультацией.</p></div>
+    <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. Не является финансовой консультацией. <a href="/politika-konfidentsialnosti.html" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
   </footer>
 </div>
 

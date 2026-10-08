@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Калькулятор зарплаты на руки (НДФЛ) — НаборНаВсе</title>
+<title>Калькулятор вклада с капитализацией процентов — НаборНаВсе</title>
 <style>
   @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
   @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
@@ -148,6 +148,10 @@
   .modal-close{margin-top:.4rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);
     padding:.45rem 1rem;border-radius:7px;font-size:13px;cursor:pointer;}
 
+  .seg4{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px;margin-bottom:1rem;}
+  .seg4 button{border:none;background:transparent;color:var(--ink-soft);font-family:var(--font-body);font-size:12.5px;padding:.5rem .3rem;border-radius:6px;cursor:pointer;line-height:1.25;}
+  .seg4 button.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+
 </style>
 </head>
 <body>
@@ -162,10 +166,10 @@
   <a href="/kreditny-kalkulyator.html">Кредитный калькулятор</a>
   <span class="soon">Рефинансирование<small>скоро</small></span>
   <p class="sidebar-title">Вклады и накопления</p>
-  <a href="/vklad-protsenty.html">Вклад с капитализацией</a>
+  <a href="/vklad-protsenty.html" class="active">Вклад с капитализацией</a>
   <a href="/nakopleniya-na-tsel.html">Накопления на цель</a>
   <p class="sidebar-title">Налоги и работа</p>
-  <a href="/zarplata-ndfl.html" class="active">Зарплата на руки (НДФЛ)</a>
+  <a href="/zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
   <p class="sidebar-title">Даты и проценты</p>
   <a href="/protsenty-kalkulyator.html">Калькулятор процентов</a>
   <a href="/dni-mezhdu-datami.html">Дни между датами</a>
@@ -193,59 +197,60 @@
 
   <div class="wrap">
     <header class="page-head">
-      <p class="brand">Налоги и работа</p>
-      <h1>Калькулятор зарплаты на руки (НДФЛ)</h1>
-      <p class="lede">Из зарплаты «до вычета» в «на руки» и обратно — по прогрессивной шкале НДФЛ 2026 года.</p>
+      <p class="brand">Вклады и накопления</p>
+      <h1>Сколько принесёт вклад с капитализацией</h1>
+      <p class="lede">Сумма к концу срока, доход и эффективная ставка — при разной периодичности начисления процентов.</p>
     </header>
-
 
     <div class="panel">
       <div class="inputs">
-        <p class="panel-eyebrow">Параметры</p>
-        <div class="seg" id="dirToggle">
-          <button class="active" data-dir="g2n">До вычета → на руки</button>
-          <button data-dir="n2g">На руки → до вычета</button>
-        </div>
-        <div class="seg" id="periodToggle">
-          <button class="active" data-period="month">В месяц</button>
-          <button data-period="year">В год</button>
-        </div>
+        <p class="panel-eyebrow">Параметры вклада</p>
+
         <div class="field">
-          <div class="field-top"><label id="amountLabel" for="amount">Доход до вычета НДФЛ, ₽/мес</label></div>
-          <input class="val-input" id="amount" type="text" inputmode="decimal" style="width:100%;text-align:left;font-size:22px;border-bottom:1.5px solid var(--line);" value="100 000">
+          <div class="field-top"><label for="amount">Сумма вклада</label><input class="val-input" id="amountVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="amount" min="10000" max="10000000" step="10000" value="300000">
+          <div class="range-labels"><span>10 тыс.</span><span>10 млн</span></div>
         </div>
-        <p class="hint">Расчёт — по ставкам НДФЛ 2026 года для трудовых доходов налоговых резидентов РФ. Стандартные и социальные вычеты не учитываются.</p>
+
+        <div class="field">
+          <div class="field-top"><label for="rate">Ставка, % годовых</label><input class="val-input" id="rateVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="rate" min="1" max="25" step="0.1" value="16">
+          <div class="range-labels"><span>1%</span><span>25%</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="term">Срок вклада, месяцев</label><input class="val-input" id="termVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="term" min="1" max="60" step="1" value="12">
+          <div class="range-labels"><span>1 мес.</span><span>60 мес.</span></div>
+        </div>
+
+        <div class="label-row"><label>Капитализация процентов <button class="info-btn" type="button" data-term="cap">?</button></label></div>
+        <div class="seg4" id="capToggle">
+          <button class="active" data-cap="monthly">Ежемесячно</button>
+          <button data-cap="quarterly">Ежеквартально</button>
+          <button data-cap="annually">Ежегодно</button>
+          <button data-cap="none">В конце срока</button>
+        </div>
+        <p class="hint">Значение можно ввести вручную — кликните по числу.</p>
       </div>
 
       <div class="results">
-        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат</p>
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат расчёта</p>
         <p class="live-badge"><span class="live-dot"></span>Пересчитывается автоматически</p>
-        <p class="result-label" id="resultLabel">На руки, в месяц</p>
-        <p class="result-big" id="resultBig">—</p>
+        <p class="result-label">Сумма к концу срока</p>
+        <p class="result-big" id="mainResult">332&nbsp;161 <small>₽</small></p>
 
-        <div class="stat-row"><span class="k">До вычета, в месяц</span><span class="v" id="statGrossMonth">—</span></div>
-        <div class="stat-row"><span class="k">НДФЛ, в месяц</span><span class="v" id="statTaxMonth">—</span></div>
-        <div class="stat-row"><span class="k">На руки, в месяц</span><span class="v" id="statNetMonth">—</span></div>
-        <div class="stat-row"><span class="k">До вычета, в год</span><span class="v" id="statGrossYear">—</span></div>
-        <div class="stat-row"><span class="k">НДФЛ, в год</span><span class="v" id="statTaxYear">—</span></div>
-        <div class="stat-row"><span class="k">Эффективная ставка</span><span class="v" id="statRate">—</span></div>
+        <div class="stat-row"><span class="k">Сумма вклада</span><span class="v" id="statPrincipal">300 000 ₽</span></div>
+        <div class="stat-row"><span class="k">Доход по вкладу</span><span class="v" id="statIncome">32 161 ₽</span></div>
+        <div class="stat-row"><span class="k">Эффективная ставка <button class="info-btn" type="button" data-term="cap" style="margin-left:2px;">?</button></span><span class="v" id="statEffective">17,23% годовых</span></div>
       </div>
     </div>
 
     <article>
-      <h2>Прогрессивная шкала НДФЛ в 2026 году</h2>
-      <p>С 2025 года в России действует прогрессивная шкала НДФЛ для трудовых доходов. Повышенная ставка применяется не ко всему доходу, а только к части, которая превышает порог:</p>
-      <div style="margin:1rem 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;">
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;"><span style="color:var(--ink-soft);">До 2,4 млн ₽ в год</span><strong>13%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">От 2,4 до 5 млн ₽</span><strong>15%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">От 5 до 20 млн ₽</span><strong>18%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">От 20 до 50 млн ₽</span><strong>20%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">Свыше 50 млн ₽</span><strong>22%</strong></div>
-      
-      </div>
-      <h3>Что не учитывает калькулятор</h3>
-      <p>Расчёт не включает стандартные, социальные и имущественные налоговые вычеты, а также доходы, облагаемые по другим ставкам (дивиденды, продажа имущества и т.п.). Бухгалтерия на самом деле считает налог нарастающим итогом с начала года, поэтому при нестабильном доходе фактическое месячное удержание может немного отличаться от среднего, показанного здесь.</p>
-      <p class="disclaimer">Расчёт носит справочный характер и не является налоговой консультацией.</p>
+      <h2>Что такое капитализация процентов</h2>
+      <p>Капитализация — это когда начисленные проценты прибавляются к телу вклада, и в следующем периоде проценты начисляются уже на увеличенную сумму. Чем чаще капитализация — тем выше итоговый доход при одной и той же заявленной ставке.</p>
+      <p>«В конце срока» означает, что проценты не капитализируются: они либо выплачиваются вкладчику отдельно, либо просто прибавляются один раз в конце без промежуточного эффекта сложного процента — в этом случае доход равен простому проценту за весь срок.</p>
+      <p class="disclaimer">Расчёт справочный и не учитывает налог на доход по вкладам, досрочное снятие и индивидуальные условия банка. Не является финансовой консультацией.</p>
     </article>
 
   </div>
@@ -253,6 +258,10 @@
   <footer class="site-footer">
     <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. <a href="/politika-konfidentsialnosti.html" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
   </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal"><h3 id="modalTitle">—</h3><div id="modalBody"></div><button class="modal-close" id="modalClose">Понятно</button></div>
 </div>
 
 <script>
@@ -274,81 +283,70 @@
   });
 
 
-  var BRACKETS=[
-    {upto:2400000, rate:0.13},
-    {upto:5000000, rate:0.15},
-    {upto:20000000, rate:0.18},
-    {upto:50000000, rate:0.20},
-    {upto:Infinity, rate:0.22}
-  ];
-  function taxFromGrossAnnual(gross){
-    var tax=0, prev=0;
-    for(var i=0;i<BRACKETS.length;i++){
-      var b=BRACKETS[i];
-      if(gross>b.upto){ tax+=(b.upto-prev)*b.rate; prev=b.upto; }
-      else { tax+=(gross-prev)*b.rate; prev=gross; break; }
-    }
-    return tax;
-  }
-  function grossFromNetAnnual(net){
-    var prevGross=0, prevNet=0;
-    for(var i=0;i<BRACKETS.length;i++){
-      var b=BRACKETS[i];
-      var width=b.upto-prevGross;
-      var netAtUpto = isFinite(b.upto) ? prevNet+width*(1-b.rate) : Infinity;
-      if(net<=netAtUpto || !isFinite(b.upto)){
-        return prevGross + (net-prevNet)/(1-b.rate);
-      }
-      prevNet=netAtUpto; prevGross=b.upto;
-    }
-  }
+  var TERMS = { cap: { title:'Капитализация и эффективная ставка', html:'<p>Номинальная ставка — это заявленный банком процент годовых. Эффективная ставка показывает, сколько вклад реально принесёт за год с учётом капитализации — она всегда выше номинальной, если проценты начисляются чаще раза в год.</p><p>Например, 16% годовых с ежемесячной капитализацией дают эффективную доходность около 17,2% — проценты на проценты делают своё дело.</p>' } };
+  var modalBackdrop=document.getElementById('modalBackdrop'), modalTitle=document.getElementById('modalTitle'), modalBody=document.getElementById('modalBody');
+  function openModal(t){ modalTitle.textContent=t.title; modalBody.innerHTML=t.html; modalBackdrop.classList.add('open'); }
+  function closeModal(){ modalBackdrop.classList.remove('open'); }
+  document.querySelectorAll('.info-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal(TERMS[btn.dataset.term]); }); });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
 
-  var dirToggle=document.getElementById('dirToggle'), periodToggle=document.getElementById('periodToggle');
-  var amount=document.getElementById('amount'), amountLabel=document.getElementById('amountLabel');
-  var resultLabel=document.getElementById('resultLabel'), resultBig=document.getElementById('resultBig');
-  var statGrossMonth=document.getElementById('statGrossMonth'), statTaxMonth=document.getElementById('statTaxMonth'), statNetMonth=document.getElementById('statNetMonth');
-  var statGrossYear=document.getElementById('statGrossYear'), statTaxYear=document.getElementById('statTaxYear'), statRate=document.getElementById('statRate');
-  var dir='g2n', period='month';
+  var CAP_N = { monthly:12, quarterly:4, annually:1, none:1 };
+  var amount=document.getElementById('amount'), rate=document.getElementById('rate'), term=document.getElementById('term');
+  var amountVal=document.getElementById('amountVal'), rateVal=document.getElementById('rateVal'), termVal=document.getElementById('termVal');
+  var mainResult=document.getElementById('mainResult'), statPrincipal=document.getElementById('statPrincipal'), statIncome=document.getElementById('statIncome'), statEffective=document.getElementById('statEffective');
+  var cap='monthly';
 
-  function num(v){ var n=parseFloat(String(v).replace(/\s/g,'').replace(',','.').replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; }
-  function money(n){ return Math.round(n).toLocaleString('ru-RU')+' ₽'; }
-
-  dirToggle.addEventListener('click', function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    dirToggle.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active'); dir=btn.dataset.dir; updateLabel(); calc();
+  document.querySelectorAll('#capToggle button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#capToggle button').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active'); cap=btn.dataset.cap; calc();
+    });
   });
-  periodToggle.addEventListener('click', function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    periodToggle.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active'); period=btn.dataset.period; updateLabel(); calc();
-  });
-  amount.addEventListener('input', calc);
-  amount.addEventListener('blur', function(){ amount.value=Math.round(num(amount.value)).toLocaleString('ru-RU'); });
 
-  function updateLabel(){
-    var per = period==='month' ? '/мес' : '/год';
-    amountLabel.textContent = (dir==='g2n' ? 'Доход до вычета НДФЛ, ₽' : 'Хочу получать на руки, ₽') + per;
-    resultLabel.textContent = (dir==='g2n' ? 'На руки' : 'Нужно до вычета') + (period==='month' ? ', в месяц' : ', в год');
+  function money(n){ return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+  function pct(n){ return (Math.round(n*100)/100).toLocaleString('ru-RU', {maximumFractionDigits:2}) + '%'; }
+
+  function paintRange(el){
+    var min=parseFloat(el.min), max=parseFloat(el.max), val=parseFloat(el.value);
+    var p=Math.min(100,Math.max(0,(val-min)/(max-min)*100));
+    el.style.background='linear-gradient(to right, var(--accent) '+p+'%, var(--line) '+p+'%)';
   }
+  function makeEditable(rangeEl, valEl, min, max, formatDisplay, formatEdit){
+    function sync(){ valEl.value = formatDisplay(parseFloat(rangeEl.value)); paintRange(rangeEl); }
+    rangeEl.addEventListener('input', function(){ sync(); calc(); });
+    valEl.addEventListener('focus', function(){ valEl.value = formatEdit(parseFloat(rangeEl.value)); valEl.select(); });
+    function commit(){
+      var raw = valEl.value.replace(',', '.').replace(/[^0-9.\-]/g,'');
+      var num = parseFloat(raw); if(isNaN(num)) num = parseFloat(rangeEl.value);
+      num = Math.min(max, Math.max(min, num)); rangeEl.value = num; sync(); calc();
+    }
+    valEl.addEventListener('blur', commit);
+    valEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ valEl.blur(); } });
+    sync();
+  }
+  makeEditable(amount, amountVal, 10000, 10000000, function(v){return Math.round(v).toLocaleString('ru-RU')+' ₽';}, function(v){return String(Math.round(v));});
+  makeEditable(rate, rateVal, 1, 25, function(v){return pct(v);}, function(v){return String(v);});
+  makeEditable(term, termVal, 1, 60, function(v){return Math.round(v)+' мес.';}, function(v){return String(Math.round(v));});
 
   function calc(){
-    var raw=num(amount.value);
-    var annualInput = period==='month' ? raw*12 : raw;
-    var grossAnnual, netAnnual, taxAnnual;
-    if(dir==='g2n'){ grossAnnual=annualInput; taxAnnual=taxFromGrossAnnual(grossAnnual); netAnnual=grossAnnual-taxAnnual; }
-    else { netAnnual=annualInput; grossAnnual=grossFromNetAnnual(netAnnual); taxAnnual=grossAnnual-netAnnual; }
-    var divisor = period==='month' ? 12 : 1;
-    var mainVal = dir==='g2n' ? netAnnual/divisor : grossAnnual/divisor;
-    resultBig.textContent = money(mainVal);
-    statGrossMonth.textContent=money(grossAnnual/12);
-    statTaxMonth.textContent=money(taxAnnual/12);
-    statNetMonth.textContent=money(netAnnual/12);
-    statGrossYear.textContent=money(grossAnnual);
-    statTaxYear.textContent=money(taxAnnual);
-    statRate.textContent = grossAnnual>0 ? (taxAnnual/grossAnnual*100).toFixed(1).replace('.',',')+'%' : '0%';
+    var P=parseFloat(amount.value), r=parseFloat(rate.value)/100, months=parseFloat(term.value), years=months/12;
+    var n=CAP_N[cap], total, income;
+    if(cap==='none'){
+      income = P*r*years;
+      total = P+income;
+    } else {
+      total = P*Math.pow(1+r/n, n*years);
+      income = total-P;
+    }
+    var effective = (Math.pow(1+r/n, n)-1)*100;
+    mainResult.innerHTML = money(total).replace(' ₽', ' <small>₽</small>');
+    statPrincipal.textContent = money(P);
+    statIncome.textContent = money(income);
+    statEffective.textContent = pct(effective) + ' годовых';
   }
-  updateLabel(); calc();
+  calc();
 
 })();
 </script>

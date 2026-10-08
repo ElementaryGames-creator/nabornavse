@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Калькулятор зарплаты на руки (НДФЛ) — НаборНаВсе</title>
+<title>Калькулятор накоплений на цель — НаборНаВсе</title>
 <style>
   @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
   @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
@@ -163,9 +163,9 @@
   <span class="soon">Рефинансирование<small>скоро</small></span>
   <p class="sidebar-title">Вклады и накопления</p>
   <a href="/vklad-protsenty.html">Вклад с капитализацией</a>
-  <a href="/nakopleniya-na-tsel.html">Накопления на цель</a>
+  <a href="/nakopleniya-na-tsel.html" class="active">Накопления на цель</a>
   <p class="sidebar-title">Налоги и работа</p>
-  <a href="/zarplata-ndfl.html" class="active">Зарплата на руки (НДФЛ)</a>
+  <a href="/zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
   <p class="sidebar-title">Даты и проценты</p>
   <a href="/protsenty-kalkulyator.html">Калькулятор процентов</a>
   <a href="/dni-mezhdu-datami.html">Дни между датами</a>
@@ -193,59 +193,58 @@
 
   <div class="wrap">
     <header class="page-head">
-      <p class="brand">Налоги и работа</p>
-      <h1>Калькулятор зарплаты на руки (НДФЛ)</h1>
-      <p class="lede">Из зарплаты «до вычета» в «на руки» и обратно — по прогрессивной шкале НДФЛ 2026 года.</p>
+      <p class="brand">Вклады и накопления</p>
+      <h1>Сколько откладывать в месяц, чтобы накопить на цель</h1>
+      <p class="lede">Целевая сумма, срок и ожидаемая доходность — сколько вносить каждый месяц с учётом процентов на остаток.</p>
     </header>
-
 
     <div class="panel">
       <div class="inputs">
-        <p class="panel-eyebrow">Параметры</p>
-        <div class="seg" id="dirToggle">
-          <button class="active" data-dir="g2n">До вычета → на руки</button>
-          <button data-dir="n2g">На руки → до вычета</button>
-        </div>
-        <div class="seg" id="periodToggle">
-          <button class="active" data-period="month">В месяц</button>
-          <button data-period="year">В год</button>
-        </div>
+        <p class="panel-eyebrow">Параметры цели</p>
+
         <div class="field">
-          <div class="field-top"><label id="amountLabel" for="amount">Доход до вычета НДФЛ, ₽/мес</label></div>
-          <input class="val-input" id="amount" type="text" inputmode="decimal" style="width:100%;text-align:left;font-size:22px;border-bottom:1.5px solid var(--line);" value="100 000">
+          <div class="field-top"><label for="target">Целевая сумма</label><input class="val-input" id="targetVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="target" min="50000" max="20000000" step="50000" value="1000000">
+          <div class="range-labels"><span>50 тыс.</span><span>20 млн</span></div>
         </div>
-        <p class="hint">Расчёт — по ставкам НДФЛ 2026 года для трудовых доходов налоговых резидентов РФ. Стандартные и социальные вычеты не учитываются.</p>
+
+        <div class="field">
+          <div class="field-top"><label for="initial">Уже накоплено</label><input class="val-input" id="initialVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="initial" min="0" max="20000000" step="10000" value="0">
+          <div class="range-labels"><span>0</span><span>20 млн</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="term">Срок, месяцев</label><input class="val-input" id="termVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="term" min="1" max="360" step="1" value="36">
+          <div class="range-labels"><span>1 мес.</span><span>360 мес.</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-top"><label for="rate">Ожидаемая доходность, % годовых <button class="info-btn" type="button" data-term="rate">?</button></label><input class="val-input" id="rateVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="rate" min="0" max="25" step="0.5" value="14">
+          <div class="range-labels"><span>0%</span><span>25%</span></div>
+        </div>
+        <p class="hint">Значение можно ввести вручную — кликните по числу.</p>
       </div>
 
       <div class="results">
-        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат</p>
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат расчёта</p>
         <p class="live-badge"><span class="live-dot"></span>Пересчитывается автоматически</p>
-        <p class="result-label" id="resultLabel">На руки, в месяц</p>
-        <p class="result-big" id="resultBig">—</p>
+        <p class="result-label" id="resultLabel">Откладывать в месяц</p>
+        <p class="result-big" id="mainResult">22&nbsp;862 <small>₽</small></p>
 
-        <div class="stat-row"><span class="k">До вычета, в месяц</span><span class="v" id="statGrossMonth">—</span></div>
-        <div class="stat-row"><span class="k">НДФЛ, в месяц</span><span class="v" id="statTaxMonth">—</span></div>
-        <div class="stat-row"><span class="k">На руки, в месяц</span><span class="v" id="statNetMonth">—</span></div>
-        <div class="stat-row"><span class="k">До вычета, в год</span><span class="v" id="statGrossYear">—</span></div>
-        <div class="stat-row"><span class="k">НДФЛ, в год</span><span class="v" id="statTaxYear">—</span></div>
-        <div class="stat-row"><span class="k">Эффективная ставка</span><span class="v" id="statRate">—</span></div>
+        <div class="stat-row"><span class="k">Всего взносов за срок</span><span class="v" id="statContrib">823 032 ₽</span></div>
+        <div class="stat-row"><span class="k">Уже есть</span><span class="v" id="statInitial">0 ₽</span></div>
+        <div class="stat-row"><span class="k">Доход за счёт процентов</span><span class="v" id="statInterest">176 968 ₽</span></div>
       </div>
     </div>
 
     <article>
-      <h2>Прогрессивная шкала НДФЛ в 2026 году</h2>
-      <p>С 2025 года в России действует прогрессивная шкала НДФЛ для трудовых доходов. Повышенная ставка применяется не ко всему доходу, а только к части, которая превышает порог:</p>
-      <div style="margin:1rem 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;">
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;"><span style="color:var(--ink-soft);">До 2,4 млн ₽ в год</span><strong>13%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">От 2,4 до 5 млн ₽</span><strong>15%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">От 5 до 20 млн ₽</span><strong>18%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">От 20 до 50 млн ₽</span><strong>20%</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:.55rem .9rem;font-size:13.5px;border-top:1px solid var(--line);"><span style="color:var(--ink-soft);">Свыше 50 млн ₽</span><strong>22%</strong></div>
-      
-      </div>
-      <h3>Что не учитывает калькулятор</h3>
-      <p>Расчёт не включает стандартные, социальные и имущественные налоговые вычеты, а также доходы, облагаемые по другим ставкам (дивиденды, продажа имущества и т.п.). Бухгалтерия на самом деле считает налог нарастающим итогом с начала года, поэтому при нестабильном доходе фактическое месячное удержание может немного отличаться от среднего, показанного здесь.</p>
-      <p class="disclaimer">Расчёт носит справочный характер и не является налоговой консультацией.</p>
+      <h2>Как считается взнос</h2>
+      <p>Калькулятор учитывает, что и уже отложенная сумма, и каждый новый взнос продолжают приносить процентный доход до конца срока — поэтому требуемый ежемесячный взнос обычно меньше, чем если просто поделить цель на число месяцев.</p>
+      <p>Чем выше ожидаемая доходность и чем длиннее срок, тем заметнее разница между «цель минус уже накопленное, делённое на месяцы» и реальным расчётом с процентами.</p>
+      <p class="disclaimer">Расчёт справочный: реальная доходность вклада или инвестиций может отличаться от заложенной, не гарантирована и не является финансовой консультацией.</p>
     </article>
 
   </div>
@@ -253,6 +252,10 @@
   <footer class="site-footer">
     <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. <a href="/politika-konfidentsialnosti.html" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
   </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal"><h3 id="modalTitle">—</h3><div id="modalBody"></div><button class="modal-close" id="modalClose">Понятно</button></div>
 </div>
 
 <script>
@@ -274,81 +277,65 @@
   });
 
 
-  var BRACKETS=[
-    {upto:2400000, rate:0.13},
-    {upto:5000000, rate:0.15},
-    {upto:20000000, rate:0.18},
-    {upto:50000000, rate:0.20},
-    {upto:Infinity, rate:0.22}
-  ];
-  function taxFromGrossAnnual(gross){
-    var tax=0, prev=0;
-    for(var i=0;i<BRACKETS.length;i++){
-      var b=BRACKETS[i];
-      if(gross>b.upto){ tax+=(b.upto-prev)*b.rate; prev=b.upto; }
-      else { tax+=(gross-prev)*b.rate; prev=gross; break; }
+  var TERMS = { rate: { title:'Ожидаемая доходность', html:'<p>Ставка, под которую реально будут работать и уже отложенная сумма, и ежемесячные взносы — например, ставка вклада с капитализацией или усреднённая ожидаемая доходность портфеля.</p><p>Чем она выше, тем меньше придётся откладывать самостоятельно: часть цели «доберут» проценты.</p>' } };
+  var modalBackdrop=document.getElementById('modalBackdrop'), modalTitle=document.getElementById('modalTitle'), modalBody=document.getElementById('modalBody');
+  function openModal(t){ modalTitle.textContent=t.title; modalBody.innerHTML=t.html; modalBackdrop.classList.add('open'); }
+  function closeModal(){ modalBackdrop.classList.remove('open'); }
+  document.querySelectorAll('.info-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal(TERMS[btn.dataset.term]); }); });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  var target=document.getElementById('target'), initial=document.getElementById('initial'), term=document.getElementById('term'), rate=document.getElementById('rate');
+  var targetVal=document.getElementById('targetVal'), initialVal=document.getElementById('initialVal'), termVal=document.getElementById('termVal'), rateVal=document.getElementById('rateVal');
+  var resultLabel=document.getElementById('resultLabel'), mainResult=document.getElementById('mainResult');
+  var statContrib=document.getElementById('statContrib'), statInitial=document.getElementById('statInitial'), statInterest=document.getElementById('statInterest');
+
+  function money(n){ return Math.round(Math.max(0,n)).toLocaleString('ru-RU') + ' ₽'; }
+
+  function paintRange(el){
+    var min=parseFloat(el.min), max=parseFloat(el.max), val=parseFloat(el.value);
+    var p=Math.min(100,Math.max(0,(val-min)/(max-min)*100));
+    el.style.background='linear-gradient(to right, var(--accent) '+p+'%, var(--line) '+p+'%)';
+  }
+  function makeEditable(rangeEl, valEl, min, max, formatDisplay, formatEdit){
+    function sync(){ valEl.value = formatDisplay(parseFloat(rangeEl.value)); paintRange(rangeEl); }
+    rangeEl.addEventListener('input', function(){ sync(); calc(); });
+    valEl.addEventListener('focus', function(){ valEl.value = formatEdit(parseFloat(rangeEl.value)); valEl.select(); });
+    function commit(){
+      var raw = valEl.value.replace(',', '.').replace(/[^0-9.\-]/g,'');
+      var num = parseFloat(raw); if(isNaN(num)) num = parseFloat(rangeEl.value);
+      num = Math.min(max, Math.max(min, num)); rangeEl.value = num; sync(); calc();
     }
-    return tax;
+    valEl.addEventListener('blur', commit);
+    valEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ valEl.blur(); } });
+    sync();
   }
-  function grossFromNetAnnual(net){
-    var prevGross=0, prevNet=0;
-    for(var i=0;i<BRACKETS.length;i++){
-      var b=BRACKETS[i];
-      var width=b.upto-prevGross;
-      var netAtUpto = isFinite(b.upto) ? prevNet+width*(1-b.rate) : Infinity;
-      if(net<=netAtUpto || !isFinite(b.upto)){
-        return prevGross + (net-prevNet)/(1-b.rate);
-      }
-      prevNet=netAtUpto; prevGross=b.upto;
-    }
-  }
-
-  var dirToggle=document.getElementById('dirToggle'), periodToggle=document.getElementById('periodToggle');
-  var amount=document.getElementById('amount'), amountLabel=document.getElementById('amountLabel');
-  var resultLabel=document.getElementById('resultLabel'), resultBig=document.getElementById('resultBig');
-  var statGrossMonth=document.getElementById('statGrossMonth'), statTaxMonth=document.getElementById('statTaxMonth'), statNetMonth=document.getElementById('statNetMonth');
-  var statGrossYear=document.getElementById('statGrossYear'), statTaxYear=document.getElementById('statTaxYear'), statRate=document.getElementById('statRate');
-  var dir='g2n', period='month';
-
-  function num(v){ var n=parseFloat(String(v).replace(/\s/g,'').replace(',','.').replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; }
-  function money(n){ return Math.round(n).toLocaleString('ru-RU')+' ₽'; }
-
-  dirToggle.addEventListener('click', function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    dirToggle.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active'); dir=btn.dataset.dir; updateLabel(); calc();
-  });
-  periodToggle.addEventListener('click', function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    periodToggle.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active'); period=btn.dataset.period; updateLabel(); calc();
-  });
-  amount.addEventListener('input', calc);
-  amount.addEventListener('blur', function(){ amount.value=Math.round(num(amount.value)).toLocaleString('ru-RU'); });
-
-  function updateLabel(){
-    var per = period==='month' ? '/мес' : '/год';
-    amountLabel.textContent = (dir==='g2n' ? 'Доход до вычета НДФЛ, ₽' : 'Хочу получать на руки, ₽') + per;
-    resultLabel.textContent = (dir==='g2n' ? 'На руки' : 'Нужно до вычета') + (period==='month' ? ', в месяц' : ', в год');
-  }
+  makeEditable(target, targetVal, 50000, 20000000, function(v){return Math.round(v).toLocaleString('ru-RU')+' ₽';}, function(v){return String(Math.round(v));});
+  makeEditable(initial, initialVal, 0, 20000000, function(v){return Math.round(v).toLocaleString('ru-RU')+' ₽';}, function(v){return String(Math.round(v));});
+  makeEditable(term, termVal, 1, 360, function(v){return Math.round(v)+' мес.';}, function(v){return String(Math.round(v));});
+  makeEditable(rate, rateVal, 0, 25, function(v){return (Math.round(v*10)/10).toLocaleString('ru-RU')+'%';}, function(v){return String(v);});
 
   function calc(){
-    var raw=num(amount.value);
-    var annualInput = period==='month' ? raw*12 : raw;
-    var grossAnnual, netAnnual, taxAnnual;
-    if(dir==='g2n'){ grossAnnual=annualInput; taxAnnual=taxFromGrossAnnual(grossAnnual); netAnnual=grossAnnual-taxAnnual; }
-    else { netAnnual=annualInput; grossAnnual=grossFromNetAnnual(netAnnual); taxAnnual=grossAnnual-netAnnual; }
-    var divisor = period==='month' ? 12 : 1;
-    var mainVal = dir==='g2n' ? netAnnual/divisor : grossAnnual/divisor;
-    resultBig.textContent = money(mainVal);
-    statGrossMonth.textContent=money(grossAnnual/12);
-    statTaxMonth.textContent=money(taxAnnual/12);
-    statNetMonth.textContent=money(netAnnual/12);
-    statGrossYear.textContent=money(grossAnnual);
-    statTaxYear.textContent=money(taxAnnual);
-    statRate.textContent = grossAnnual>0 ? (taxAnnual/grossAnnual*100).toFixed(1).replace('.',',')+'%' : '0%';
+    var FV=parseFloat(target.value), P0=parseFloat(initial.value), n=parseFloat(term.value), r=parseFloat(rate.value)/100/12;
+    var fvFromInitial = P0*Math.pow(1+r, n);
+    var remaining = FV - fvFromInitial;
+    var pmt;
+    if(remaining <= 0){
+      pmt = 0;
+      resultLabel.textContent = 'Цель уже достигнута';
+    } else {
+      pmt = (r===0) ? (remaining/n) : (remaining*r/(Math.pow(1+r,n)-1));
+      resultLabel.textContent = 'Откладывать в месяц';
+    }
+    var totalContrib = pmt*n;
+    var interest = Math.max(0, FV - P0 - totalContrib);
+    mainResult.innerHTML = money(pmt).replace(' ₽', ' <small>₽</small>');
+    statContrib.textContent = money(totalContrib);
+    statInitial.textContent = money(P0);
+    statInterest.textContent = money(interest);
   }
-  updateLabel(); calc();
+  calc();
 
 })();
 </script>

@@ -335,41 +335,122 @@
     return m+':'+(sec<10?'0':'')+sec.toFixed(1);
   }
   function setProgress(pct){ var pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.max(0,Math.min(100,Math.round(pct)))+'%'; }
+  function describeError(err){
+    try{
+      if(err instanceof Error){
+        var parts=[err.name||'Error'];
+        if(err.message) parts.push(err.message);
+        var s=parts.join(': ');
+        if(err.stack){ var firstLine=String(err.stack).split('\n')[0]; if(firstLine && firstLine.indexOf(s)===-1) s+=' ('+firstLine+')'; }
+        return s;
+      }
+      if(typeof err==='string') return err;
+      if(err && typeof err==='object'){
+        var bits=[];
+        if(err.name) bits.push(err.name);
+        if(err.message) bits.push(err.message);
+        if(err.type) bits.push('type='+err.type);
+        if(!bits.length){ try{ bits.push(JSON.stringify(err)); }catch(e2){ bits.push(Object.prototype.toString.call(err)); } }
+        return bits.join(': ');
+      }
+      return String(err);
+    }catch(e3){ return 'неизвестная ошибка'; }
+  }
 
 
   var ffmpegInstance=null, ffmpegLoading=null, activeProgressCb=null;
 
-  function loadScriptOnce(src){
-    return new Promise(function(resolve,reject){
-      var existing=document.querySelector('script[data-src="'+src+'"]');
-      if(existing){ resolve(); return; }
-      var s=document.createElement('script');
-      s.src=src; s.dataset.src=src;
-      s.onload=function(){ resolve(); };
-      s.onerror=function(){ reject(new Error('Не удалось загрузить видеодвижок. Проверьте подключение к интернету и попробуйте ещё раз.')); };
-      document.head.appendChild(s);
-    });
-  }
+  var FF_WORKER_SRC = `
+    var ffmpegCore=null;
+    self.onmessage=function(ev){
+      var msgId=ev.data[0], cmd=ev.data[1], args=ev.data[2]||[];
+      (async function(){
+        try{
+          var result=null;
+          if(cmd==="LOAD"){
+            var coreURL=args[0], wasmURL=args[1];
+            importScripts(coreURL);
+            var frag=btoa(JSON.stringify({wasmURL:wasmURL}));
+            ffmpegCore=await self.createFFmpegCore({mainScriptUrlOrBlob:coreURL+"#"+frag});
+            ffmpegCore.setLogger(function(d){ self.postMessage(["LOG",d,undefined]); });
+            ffmpegCore.setProgress(function(p){ self.postMessage(["PROGRESS",p,undefined]); });
+          } else if(cmd==="FS.writeFile"){
+            ffmpegCore.FS.writeFile(args[0], args[1]);
+          } else if(cmd==="FS.readFile"){
+            result=ffmpegCore.FS.readFile(args[0], {encoding:"binary"});
+          } else if(cmd==="FS.unlink"){
+            ffmpegCore.FS.unlink(args[0]);
+          } else if(cmd==="exec"){
+            ffmpegCore.setTimeout(-1);
+            ffmpegCore.exec.apply(ffmpegCore, args);
+            result=ffmpegCore.ret;
+            ffmpegCore.reset();
+          }
+          var transfer=(result instanceof Uint8Array)?[result.buffer]:[];
+          self.postMessage([cmd, result, msgId], transfer);
+        }catch(err){
+          self.postMessage(["ERROR", (err&&err.message)?err.message:String(err), msgId]);
+        }
+      })();
+    };
+  `;
 
   function ensureFFmpeg(){
     if(ffmpegInstance) return Promise.resolve(ffmpegInstance);
     if(ffmpegLoading) return ffmpegLoading;
     ffmpegLoading = (async function(){
-      await loadScriptOnce('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
-      await loadScriptOnce('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
-      var FFmpeg = window.FFmpegWASM.FFmpeg;
-      var ff = new FFmpeg();
-      var baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-      var coreURL = await window.FFmpegUtil.toBlobURL(baseURL+'/ffmpeg-core.js', 'text/javascript');
-      var wasmURL = await window.FFmpegUtil.toBlobURL(baseURL+'/ffmpeg-core.wasm', 'application/wasm');
-      var classWorkerURL = await window.FFmpegUtil.toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
-      await ff.load({coreURL: coreURL, wasmURL: wasmURL, classWorkerURL: classWorkerURL});
+      var coreURL = new URL('ffmpeg/ffmpeg-core.js', document.baseURI).href;
+      var wasmURL = new URL('ffmpeg/ffmpeg-core.wasm', document.baseURI).href;
+      var worker;
+      try{
+        worker = new Worker(URL.createObjectURL(new Blob([FF_WORKER_SRC], {type:'text/javascript'})));
+      }catch(e){
+        throw new Error('Не удалось запустить видеодвижок в этом браузере: '+(e&&e.message?e.message:e));
+      }
+      var msgCounter=0, resolveFns={}, rejectFns={};
+      var logListeners=[], progressListeners=[];
+      function call(cmd, args, transfer){
+        return new Promise(function(resolve, reject){
+          var msgId = 'm'+(++msgCounter);
+          resolveFns[msgId]=resolve; rejectFns[msgId]=reject;
+          worker.postMessage([msgId, cmd, args||[]], transfer||[]);
+        });
+      }
+      worker.onmessage = function(ev){
+        var cmd=ev.data[0], result=ev.data[1], msgId=ev.data[2];
+        if(cmd==='LOG'){ logListeners.forEach(function(cb){ cb(result); }); return; }
+        if(cmd==='PROGRESS'){ progressListeners.forEach(function(cb){ cb(result); }); return; }
+        if(cmd==='ERROR'){ if(msgId && rejectFns[msgId]){ rejectFns[msgId](new Error(result)); delete resolveFns[msgId]; delete rejectFns[msgId]; } return; }
+        if(msgId && resolveFns[msgId]){ resolveFns[msgId](result); delete resolveFns[msgId]; delete rejectFns[msgId]; }
+      };
+      worker.onerror = function(e){
+        var msg = 'Ошибка видеодвижка: '+(e&&e.message?e.message:'не удалось запустить обработчик видео')+'. Проверьте, что файлы ffmpeg-core.js и ffmpeg-core.wasm лежат в папке ffmpeg рядом со страницей.';
+        for(var k in rejectFns){ rejectFns[k](new Error(msg)); }
+        resolveFns={}; rejectFns={};
+      };
+      await call('LOAD', [coreURL, wasmURL]);
+      var ff = {
+        writeFile: function(name, data){ var u8 = data instanceof Uint8Array ? data : new Uint8Array(data); return call('FS.writeFile', [name, u8], [u8.buffer]); },
+        readFile: function(name){ return call('FS.readFile', [name]); },
+        deleteFile: function(name){ return call('FS.unlink', [name]); },
+        exec: function(args){ return call('exec', args); },
+        on: function(evName, cb){ if(evName==='progress') progressListeners.push(cb); else if(evName==='log') logListeners.push(cb); },
+        terminate: function(){ worker.terminate(); }
+      };
       ff.on('progress', function(ev){ if(activeProgressCb) activeProgressCb(ev); });
       ffmpegInstance = ff;
       return ff;
     })();
     return ffmpegLoading;
   }
+
+  window.FFmpegUtil = window.FFmpegUtil || {
+    fetchFile: async function(file){
+      if(file instanceof Blob) return new Uint8Array(await file.arrayBuffer());
+      if(typeof file === 'string'){ var r = await fetch(file); return new Uint8Array(await r.arrayBuffer()); }
+      return new Uint8Array(file);
+    }
+  };
 
   function extOf(name, fallback){
     var m = /\.([a-z0-9]+)$/i.exec(name);
@@ -525,7 +606,7 @@
       lastResultBlob=blob;
     }catch(err){
       console.error(err);
-      var msg = err && err.message ? err.message : 'неизвестная ошибка';
+      var msg = describeError(err) || 'неизвестная ошибка';
       errorBox.innerHTML='<div class="error-box">Не получилось создать GIF: '+escapeHtml(msg)+'. Попробуйте фрагмент покороче, меньшую ширину или обновите страницу и повторите попытку.</div>';
       status.textContent=''; progressWrap.style.display='none';
     }finally{

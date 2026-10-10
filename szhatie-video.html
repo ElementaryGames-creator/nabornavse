@@ -247,14 +247,13 @@
         <div id="clipCard"></div>
 
         <p class="panel-eyebrow" style="margin-top:1.4rem;">Настройки сжатия</p>
-        <p class="label-row" style="margin-bottom:.5rem;"><label>Качество</label></p>
-        <div class="seg" id="qualitySeg">
-          <button type="button" data-q="high">Высокое</button>
-          <button type="button" class="active" data-q="balance">Баланс</button>
-          <button type="button" data-q="strong">Сильное сжатие</button>
+        <div class="field">
+          <div class="field-top"><label>Степень сжатия</label><span class="val-input" id="crfLabel" style="border:none;cursor:default;width:auto;">Среднее</span></div>
+          <input type="range" id="crfSlider" min="0" max="100" step="1" value="45">
+          <div class="range-labels"><span>Лучше качество</span><span>Меньше размер</span></div>
         </div>
 
-        <div class="field" style="margin-top:.8rem;">
+        <div class="field" style="margin-top:.6rem;">
           <div class="field-top"><label>Максимальное разрешение</label></div>
           <select id="resSelect" style="width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.6rem .75rem;font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--ink);margin-top:.3rem;">
             <option value="orig">Исходное</option>
@@ -268,6 +267,8 @@
           <input type="checkbox" id="removeAudio">
           <label for="removeAudio">Убрать звук</label>
         </div>
+
+        <p class="hint" id="estimateHint" style="margin-top:.8rem;"></p>
       </div>
 
       <div class="results">
@@ -300,7 +301,7 @@
       <h2>Как это работает</h2>
       <p>Видео сжимается <strong>прямо в браузере</strong> — файл не загружается ни на какой сервер. За перекодирование отвечает движок FFmpeg, собранный в WebAssembly; при первом запуске он подгружается (около 25–30 МБ), поэтому первое сжатие может занять чуть больше времени.</p>
       <h3>Качество и размер</h3>
-      <p>Чем сильнее сжатие, тем меньше файл, но заметнее потери в деталях и резкости, особенно на динамичных сценах. «Баланс» подходит для большинства случаев — заметной разницы на глаз обычно нет, а вес файла уменьшается в несколько раз.</p>
+      <p>Ползунок «Степень сжатия» плавно меняет баланс между качеством и весом файла — рядом сразу показывается ориентировочный итоговый размер. Это оценка по формуле, а не точный расчёт: реальный результат зависит от содержания видео (динамичная сцена сжимается хуже статичной), поэтому точные цифры будут известны только после обработки.</p>
       <h3>Разрешение</h3>
       <p>Снижение максимального разрешения — самый быстрый способ уменьшить файл: видео в 720p весит в разы меньше, чем в 1080p или 4K, а для соцсетей и мессенджеров разница в чёткости почти незаметна.</p>
       <p class="disclaimer">Обработка идёт на вашем устройстве, поэтому скорость зависит от браузера и мощности компьютера или телефона. Для больших или долгих роликов сжатие может занять продолжительное время или не хватить памяти — лучше всего инструмент работает в последних версиях Chrome, Edge и Safari на компьютере.</p>
@@ -341,41 +342,122 @@
     return m+':'+(sec<10?'0':'')+sec.toFixed(1);
   }
   function setProgress(pct){ var pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.max(0,Math.min(100,Math.round(pct)))+'%'; }
+  function describeError(err){
+    try{
+      if(err instanceof Error){
+        var parts=[err.name||'Error'];
+        if(err.message) parts.push(err.message);
+        var s=parts.join(': ');
+        if(err.stack){ var firstLine=String(err.stack).split('\n')[0]; if(firstLine && firstLine.indexOf(s)===-1) s+=' ('+firstLine+')'; }
+        return s;
+      }
+      if(typeof err==='string') return err;
+      if(err && typeof err==='object'){
+        var bits=[];
+        if(err.name) bits.push(err.name);
+        if(err.message) bits.push(err.message);
+        if(err.type) bits.push('type='+err.type);
+        if(!bits.length){ try{ bits.push(JSON.stringify(err)); }catch(e2){ bits.push(Object.prototype.toString.call(err)); } }
+        return bits.join(': ');
+      }
+      return String(err);
+    }catch(e3){ return 'неизвестная ошибка'; }
+  }
 
 
   var ffmpegInstance=null, ffmpegLoading=null, activeProgressCb=null;
 
-  function loadScriptOnce(src){
-    return new Promise(function(resolve,reject){
-      var existing=document.querySelector('script[data-src="'+src+'"]');
-      if(existing){ resolve(); return; }
-      var s=document.createElement('script');
-      s.src=src; s.dataset.src=src;
-      s.onload=function(){ resolve(); };
-      s.onerror=function(){ reject(new Error('Не удалось загрузить видеодвижок. Проверьте подключение к интернету и попробуйте ещё раз.')); };
-      document.head.appendChild(s);
-    });
-  }
+  var FF_WORKER_SRC = `
+    var ffmpegCore=null;
+    self.onmessage=function(ev){
+      var msgId=ev.data[0], cmd=ev.data[1], args=ev.data[2]||[];
+      (async function(){
+        try{
+          var result=null;
+          if(cmd==="LOAD"){
+            var coreURL=args[0], wasmURL=args[1];
+            importScripts(coreURL);
+            var frag=btoa(JSON.stringify({wasmURL:wasmURL}));
+            ffmpegCore=await self.createFFmpegCore({mainScriptUrlOrBlob:coreURL+"#"+frag});
+            ffmpegCore.setLogger(function(d){ self.postMessage(["LOG",d,undefined]); });
+            ffmpegCore.setProgress(function(p){ self.postMessage(["PROGRESS",p,undefined]); });
+          } else if(cmd==="FS.writeFile"){
+            ffmpegCore.FS.writeFile(args[0], args[1]);
+          } else if(cmd==="FS.readFile"){
+            result=ffmpegCore.FS.readFile(args[0], {encoding:"binary"});
+          } else if(cmd==="FS.unlink"){
+            ffmpegCore.FS.unlink(args[0]);
+          } else if(cmd==="exec"){
+            ffmpegCore.setTimeout(-1);
+            ffmpegCore.exec.apply(ffmpegCore, args);
+            result=ffmpegCore.ret;
+            ffmpegCore.reset();
+          }
+          var transfer=(result instanceof Uint8Array)?[result.buffer]:[];
+          self.postMessage([cmd, result, msgId], transfer);
+        }catch(err){
+          self.postMessage(["ERROR", (err&&err.message)?err.message:String(err), msgId]);
+        }
+      })();
+    };
+  `;
 
   function ensureFFmpeg(){
     if(ffmpegInstance) return Promise.resolve(ffmpegInstance);
     if(ffmpegLoading) return ffmpegLoading;
     ffmpegLoading = (async function(){
-      await loadScriptOnce('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
-      await loadScriptOnce('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
-      var FFmpeg = window.FFmpegWASM.FFmpeg;
-      var ff = new FFmpeg();
-      var baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-      var coreURL = await window.FFmpegUtil.toBlobURL(baseURL+'/ffmpeg-core.js', 'text/javascript');
-      var wasmURL = await window.FFmpegUtil.toBlobURL(baseURL+'/ffmpeg-core.wasm', 'application/wasm');
-      var classWorkerURL = await window.FFmpegUtil.toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
-      await ff.load({coreURL: coreURL, wasmURL: wasmURL, classWorkerURL: classWorkerURL});
+      var coreURL = new URL('ffmpeg/ffmpeg-core.js', document.baseURI).href;
+      var wasmURL = new URL('ffmpeg/ffmpeg-core.wasm', document.baseURI).href;
+      var worker;
+      try{
+        worker = new Worker(URL.createObjectURL(new Blob([FF_WORKER_SRC], {type:'text/javascript'})));
+      }catch(e){
+        throw new Error('Не удалось запустить видеодвижок в этом браузере: '+(e&&e.message?e.message:e));
+      }
+      var msgCounter=0, resolveFns={}, rejectFns={};
+      var logListeners=[], progressListeners=[];
+      function call(cmd, args, transfer){
+        return new Promise(function(resolve, reject){
+          var msgId = 'm'+(++msgCounter);
+          resolveFns[msgId]=resolve; rejectFns[msgId]=reject;
+          worker.postMessage([msgId, cmd, args||[]], transfer||[]);
+        });
+      }
+      worker.onmessage = function(ev){
+        var cmd=ev.data[0], result=ev.data[1], msgId=ev.data[2];
+        if(cmd==='LOG'){ logListeners.forEach(function(cb){ cb(result); }); return; }
+        if(cmd==='PROGRESS'){ progressListeners.forEach(function(cb){ cb(result); }); return; }
+        if(cmd==='ERROR'){ if(msgId && rejectFns[msgId]){ rejectFns[msgId](new Error(result)); delete resolveFns[msgId]; delete rejectFns[msgId]; } return; }
+        if(msgId && resolveFns[msgId]){ resolveFns[msgId](result); delete resolveFns[msgId]; delete rejectFns[msgId]; }
+      };
+      worker.onerror = function(e){
+        var msg = 'Ошибка видеодвижка: '+(e&&e.message?e.message:'не удалось запустить обработчик видео')+'. Проверьте, что файлы ffmpeg-core.js и ffmpeg-core.wasm лежат в папке ffmpeg рядом со страницей.';
+        for(var k in rejectFns){ rejectFns[k](new Error(msg)); }
+        resolveFns={}; rejectFns={};
+      };
+      await call('LOAD', [coreURL, wasmURL]);
+      var ff = {
+        writeFile: function(name, data){ var u8 = data instanceof Uint8Array ? data : new Uint8Array(data); return call('FS.writeFile', [name, u8], [u8.buffer]); },
+        readFile: function(name){ return call('FS.readFile', [name]); },
+        deleteFile: function(name){ return call('FS.unlink', [name]); },
+        exec: function(args){ return call('exec', args); },
+        on: function(evName, cb){ if(evName==='progress') progressListeners.push(cb); else if(evName==='log') logListeners.push(cb); },
+        terminate: function(){ worker.terminate(); }
+      };
       ff.on('progress', function(ev){ if(activeProgressCb) activeProgressCb(ev); });
       ffmpegInstance = ff;
       return ff;
     })();
     return ffmpegLoading;
   }
+
+  window.FFmpegUtil = window.FFmpegUtil || {
+    fetchFile: async function(file){
+      if(file instanceof Blob) return new Uint8Array(await file.arrayBuffer());
+      if(typeof file === 'string'){ var r = await fetch(file); return new Uint8Array(await r.arrayBuffer()); }
+      return new Uint8Array(file);
+    }
+  };
 
   function extOf(name, fallback){
     var m = /\.([a-z0-9]+)$/i.exec(name);
@@ -385,15 +467,61 @@
 
   var dropzone=document.getElementById('dropzone'), fileInput=document.getElementById('fileInput'), clipCard=document.getElementById('clipCard');
   var statOrigSize=document.getElementById('statOrigSize'), statRes=document.getElementById('statRes'), statDur=document.getElementById('statDur');
-  var qualitySeg=document.getElementById('qualitySeg'), resSelect=document.getElementById('resSelect'), removeAudioCb=document.getElementById('removeAudio');
+  var crfSlider=document.getElementById('crfSlider'), crfLabel=document.getElementById('crfLabel'), estimateHint=document.getElementById('estimateHint');
+  var resSelect=document.getElementById('resSelect'), removeAudioCb=document.getElementById('removeAudio');
   var compressBtn=document.getElementById('compressBtn'), status=document.getElementById('status');
   var progressWrap=document.getElementById('progressWrap'), errorBox=document.getElementById('errorBox');
   var resultBlock=document.getElementById('resultBlock'), resultVideo=document.getElementById('resultVideo');
   var scBefore=document.getElementById('scBefore'), scAfter=document.getElementById('scAfter'), reduceBadge=document.getElementById('reduceBadge'), downloadBtn=document.getElementById('downloadBtn');
 
   var currentFile=null, meta=null;
-  var quality='balance';
   var lastResultBlob=null;
+
+  // slider 0..100 ("степень сжатия") -> x264 CRF 18..36 (ниже CRF = лучше качество/больше файл)
+  function crfFromSlider(v){ return 18 + (v/100)*(36-18); }
+  function qualityLabel(v){
+    if(v<15) return 'Почти без сжатия';
+    if(v<35) return 'Лёгкое';
+    if(v<60) return 'Среднее';
+    if(v<85) return 'Сильное';
+    return 'Максимальное';
+  }
+  // грубая оценка бит/пиксель для libx264 по CRF (кусочно-линейная интерполяция по опорным точкам)
+  function bppFromCrf(crf){
+    var pts=[[16,0.16],[20,0.11],[23,0.08],[26,0.055],[29,0.038],[32,0.024],[36,0.013],[40,0.007]];
+    if(crf<=pts[0][0]) return pts[0][1];
+    if(crf>=pts[pts.length-1][0]) return pts[pts.length-1][1];
+    for(var i=0;i<pts.length-1;i++){
+      var a=pts[i], b=pts[i+1];
+      if(crf>=a[0] && crf<=b[0]){ var t=(crf-a[0])/(b[0]-a[0]); return a[1]+t*(b[1]-a[1]); }
+    }
+    return 0.05;
+  }
+  function currentTargetWH(){
+    var capMap={orig:Infinity, '1080':1920, '720':1280, '480':854};
+    var maxSide=capMap[resSelect.value]||Infinity;
+    var scale=Math.min(1, maxSide/Math.max(meta.w, meta.h));
+    return [Math.max(2, Math.round(meta.w*scale/2)*2), Math.max(2, Math.round(meta.h*scale/2)*2)];
+  }
+  function updateEstimate(){
+    var v=parseInt(crfSlider.value,10);
+    crfLabel.textContent=qualityLabel(v);
+    if(!meta || !currentFile){ estimateHint.textContent=''; return; }
+    var crf=crfFromSlider(v);
+    var wh=currentTargetWH(), W=wh[0], H=wh[1];
+    var fps=30; // браузер не отдаёт точный fps без доп. анализа — берём типовое значение для оценки
+    var bpp=bppFromCrf(crf);
+    var videoBits=bpp*W*H*fps*meta.duration;
+    var audioBits = removeAudioCb.checked ? 0 : 128000*meta.duration;
+    var estBytes=Math.max((videoBits+audioBits)/8, 15*1024);
+    var pct=Math.round((1-estBytes/currentFile.size)*100);
+    var pctText = pct>0 ? ('−'+pct+'%') : (pct<0 ? ('+'+(-pct)+'%') : '±0%');
+    estimateHint.textContent='Ориентировочный размер: ≈ '+prettySize(estBytes)+' ('+pctText+'). Это оценка — фактический результат зависит от содержания видео.';
+  }
+  crfSlider.addEventListener('input', updateEstimate);
+  resSelect.addEventListener('change', updateEstimate);
+  removeAudioCb.addEventListener('change', updateEstimate);
+  updateEstimate();
 
   dropzone.addEventListener('click', function(){ fileInput.click(); });
   ['dragover','dragenter'].forEach(function(ev){ dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.add('drag'); }); });
@@ -422,20 +550,16 @@
       statRes.textContent=meta.w+'×'+meta.h;
       statDur.textContent=fmtTime(meta.duration);
       compressBtn.disabled=false;
+      updateEstimate();
     }, {once:true});
     clipCard.querySelector('.clipRemove').addEventListener('click', function(){
       try{ URL.revokeObjectURL(currentFile.url); }catch(e){}
       currentFile=null; meta=null; clipCard.innerHTML='';
       statOrigSize.textContent='—'; statRes.textContent='—'; statDur.textContent='—';
       compressBtn.disabled=true; resultBlock.style.display='none';
+      updateEstimate();
     });
   }
-
-  qualitySeg.addEventListener('click', function(e){
-    var btn=e.target.closest('button'); if(!btn) return;
-    qualitySeg.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active'); quality=btn.dataset.q;
-  });
 
   compressBtn.addEventListener('click', async function(){
     if(!currentFile || !meta) return;
@@ -445,10 +569,7 @@
     progressWrap.style.display='block'; setProgress(0);
     status.textContent='Загрузка видеодвижка…';
 
-    var crfMap={high:20, balance:26, strong:32};
-    var crf=crfMap[quality]||26;
-    var capMap={orig:Infinity, '1080':1920, '720':1280, '480':854};
-    var maxSide=capMap[resSelect.value]||Infinity;
+    var crf=Math.round(crfFromSlider(parseInt(crfSlider.value,10)));
     var removeAudio=removeAudioCb.checked;
 
     activeProgressCb=function(ev){ var frac=Math.min(1,Math.max(0,ev&&ev.progress||0)); setProgress(frac*100); };
@@ -460,10 +581,9 @@
       var inName='in.'+ext, outName='out.mp4';
       await ff.writeFile(inName, await window.FFmpegUtil.fetchFile(currentFile.file));
 
-      var scale=Math.min(1, maxSide/Math.max(meta.w, meta.h));
+      var wh=currentTargetWH(), W=wh[0], H=wh[1];
       var args=['-i', inName];
-      if(scale<1){
-        var W=Math.max(2, Math.round(meta.w*scale/2)*2), H=Math.max(2, Math.round(meta.h*scale/2)*2);
+      if(W!==meta.w || H!==meta.h){
         args.push('-vf','scale='+W+':'+H+':force_original_aspect_ratio=decrease,pad='+W+':'+H+':(ow-iw)/2:(oh-ih)/2,setsar=1');
       }
       args.push('-c:v','libx264','-preset','veryfast','-crf',String(crf));
@@ -487,7 +607,7 @@
       lastResultBlob=blob;
     }catch(err){
       console.error(err);
-      var msg = err && err.message ? err.message : 'неизвестная ошибка';
+      var msg = describeError(err) || 'неизвестная ошибка';
       errorBox.innerHTML='<div class="error-box">Не получилось сжать видео: '+escapeHtml(msg)+'. Попробуйте файл поменьше, другое разрешение или обновите страницу и повторите попытку.</div>';
       status.textContent=''; progressWrap.style.display='none';
     }finally{

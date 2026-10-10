@@ -46,6 +46,14 @@
   .sidebar a:hover{background:var(--bg);}
   .sidebar span.soon{color:var(--ink-faint);}
   .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .sidebar-search{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.5rem .7rem;font-family:var(--font-body);font-size:13.5px;color:var(--ink);margin:.2rem 0 1rem;}
+  .sidebar-search::placeholder{color:var(--ink-faint);}
+  .sidebar-search:focus{outline:none;border-color:var(--accent);}
+  .sidebar-title{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
+  .sidebar-title::after{content:'\25BE';font-size:10px;color:var(--ink-faint);flex-shrink:0;}
+  .sidebar-title.collapsed::after{content:'\25B8';}
+  .sidebar-item-hidden{display:none !important;}
+  .sidebar-no-match{font-size:12.5px;color:var(--ink-faint);padding:.3rem .6rem;display:none;}
   .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
   body.nav-open .backdrop{opacity:1;pointer-events:auto;}
 
@@ -156,6 +164,7 @@
 <nav class="sidebar" id="sidebar">
   <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
   <a href="index.html" class="sidebar-home">НаборНаВсе — главная</a>
+  <input type="text" class="sidebar-search" id="sidebarSearch" placeholder="Поиск по инструментам…" autocomplete="off">
   <p class="sidebar-title">Кредиты и ипотека</p>
   <a href="ipoteka-calculator.html">Ипотечный платёж</a>
   <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
@@ -257,6 +266,55 @@
 
 <script>
 (function(){
+
+  (function(){
+    var sb=document.getElementById('sidebar');
+    if(!sb) return;
+    var titles=Array.prototype.slice.call(sb.querySelectorAll('.sidebar-title'));
+    var sections=titles.map(function(t){
+      var items=[], el=t.nextElementSibling;
+      while(el && !el.classList.contains('sidebar-title')){ items.push(el); el=el.nextElementSibling; }
+      return {title:t, items:items, collapsed:false};
+    });
+    var CKEY='nabor-sidebar-collapsed';
+    var saved={};
+    try{ (JSON.parse(localStorage.getItem(CKEY)||'[]')).forEach(function(k){ saved[k]=true; }); }catch(e){}
+    sections.forEach(function(s){ s.collapsed=!!saved[s.title.textContent.trim()]; });
+    var search=document.getElementById('sidebarSearch');
+    function query(){ return search ? search.value.trim().toLowerCase() : ''; }
+    function render(){
+      var q=query();
+      sections.forEach(function(s){
+        if(q){
+          var any=false;
+          s.items.forEach(function(it){
+            var ok=it.textContent.toLowerCase().indexOf(q)!==-1;
+            it.classList.toggle('sidebar-item-hidden', !ok);
+            if(ok) any=true;
+          });
+          s.title.classList.remove('collapsed');
+          s.title.style.display = any ? '' : 'none';
+        } else {
+          s.title.style.display='';
+          s.title.classList.toggle('collapsed', s.collapsed);
+          s.items.forEach(function(it){ it.classList.toggle('sidebar-item-hidden', s.collapsed); });
+        }
+      });
+    }
+    sections.forEach(function(s){
+      s.title.addEventListener('click', function(){
+        if(query()) return;
+        s.collapsed=!s.collapsed;
+        try{
+          var keys=sections.filter(function(x){return x.collapsed;}).map(function(x){return x.title.textContent.trim();});
+          localStorage.setItem(CKEY, JSON.stringify(keys));
+        }catch(e){}
+        render();
+      });
+    });
+    if(search){ search.addEventListener('input', render); }
+    render();
+  })();
 
   var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop'), sidebarClose=document.getElementById('sidebarClose');
   function openNav(){ document.body.classList.add('nav-open'); document.body.style.overflow='hidden'; }

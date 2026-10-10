@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Извлечь звук из видео — НаборНаВсе</title>
+<style>
+
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/inter-600.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/inter-700.woff2') format('woff2');}
+  :root{
+    --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
+    --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
+    --radius:10px; --font-body:'Inter', -apple-system, Segoe UI, Roboto, sans-serif;
+    --sidebar-w:270px;
+    --shadow:0 1px 2px rgba(20,24,30,.03), 0 10px 24px -16px rgba(20,24,30,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+      --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+    --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow-wrap:anywhere;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;}
+  body.nav-open .sidebar{transform:translateX(0);}
+  .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+  .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
+  .sidebar-title:first-child{margin-top:0;}
+  .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .sidebar a:hover{background:var(--bg);}
+  .sidebar span.soon{color:var(--ink-faint);}
+  .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
+  body.nav-open .backdrop{opacity:1;pointer-events:auto;}
+
+  .page{min-height:100vh;}
+
+  .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .site-header-inner{max-width:900px;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .menu-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .logo{font-weight:700;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:1;}
+  .theme-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+
+  header.page-head{padding:1.3rem 0 1.1rem;}
+  .brand{font-size:12px;color:var(--ink-faint);margin:0 0 .4rem;}
+  h1{font-weight:700;font-size:clamp(20px,3vw,26px);line-height:1.2;margin:0 0 .35rem;max-width:20ch;}
+  .lede{color:var(--ink-soft);font-size:13.5px;line-height:1.45;max-width:54ch;margin:0;}
+
+  .panel{display:grid;grid-template-columns:1.1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  @media (max-width:720px){ .panel{grid-template-columns:1fr;} }
+  .inputs{padding:1.3rem 1.3rem;border-right:1px solid var(--line);min-width:0;}
+  @media (max-width:720px){ .inputs{border-right:none;border-bottom:1px solid var(--line);} }
+
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:1rem;}
+  .seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font-family:var(--font-body);font-size:13px;padding:.5rem;border-radius:6px;cursor:pointer;}
+  .seg button.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+
+  .field{margin-bottom:.6rem;background:var(--bg);border-radius:10px;padding:.8rem .9rem .85rem;}
+  .field:last-child{margin-bottom:0;}
+  .field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;gap:8px;}
+  .field-top label{font-size:13.5px;color:var(--ink-soft);}
+  .val-input{font-family:var(--font-body);font-weight:600;font-size:15.5px;text-align:right;background:transparent;
+    border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);width:13ch;padding:2px 2px;
+    font-variant-numeric:tabular-nums;cursor:text;}
+  .val-input:hover{border-bottom-color:var(--accent);}
+  .val-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--line);border-radius:3px;outline:none;margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .menu-btn:hover, .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .seg button:hover:not(.active){color:var(--ink);}
+  .info-btn:active, .menu-btn:active, .theme-btn:active{transform:scale(.94);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  .range-labels{display:flex;justify-content:space-between;margin-top:.3rem;}
+  .range-labels span{font-size:11.5px;color:var(--ink-faint);}
+  .derived{font-size:12.5px;color:var(--ink-soft);margin-top:.5rem;}
+  .derived b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .hint{font-size:11px;color:var(--ink-faint);margin:.6rem 0 0;}
+
+  .results{padding:1.3rem 1.3rem;background:var(--accent-soft);min-width:0;}
+  .panel-eyebrow{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:0 0 1.3rem;}
+  .result-label{font-size:12.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+
+  .stat-row{display:flex;justify-content:space-between;padding:.65rem 0;border-top:1px solid var(--line);}
+  .stat-row:first-of-type{border-top:none;}
+  .stat-row .k{font-size:13px;color:var(--ink-soft);}
+  .stat-row .v{font-size:14px;font-variant-numeric:tabular-nums;font-weight:500;}
+
+  article{max-width:64ch;margin:2rem auto 0;padding:1.7rem 0 2.2rem;border-top:1px solid var(--line);}
+  article h2{font-weight:700;font-size:20px;margin:0 0 .8rem;}
+  article h2 + p{margin-top:0;}
+  article h3{font-size:15px;font-weight:600;margin:1.6rem 0 .5rem;}
+  article p{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;}
+  article strong{color:var(--ink);font-weight:600;}
+  .disclaimer{font-size:12.5px;color:var(--ink-faint);margin-top:1.8rem;}
+
+  .site-footer{border-top:1px solid var(--line);padding:1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:1rem;}
+  .site-footer p{font-size:12.5px;color:var(--ink-faint);margin:0;}
+
+  @media (max-width:640px){
+    .sidebar{width:84vw;max-width:300px;}
+  }
+
+  .label-row{display:flex;align-items:center;margin-bottom:.5rem;}
+  .label-row label{font-size:13.5px;color:var(--ink-soft);}
+  .info-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;
+    border:1px solid var(--ink-faint);color:var(--ink-faint);background:transparent;font-size:11px;cursor:pointer;
+    margin-left:6px;flex-shrink:0;line-height:1;padding:0;}
+  .info-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .dim-row{display:flex;gap:.7rem;margin-bottom:.4rem;}
+  .dim-field{flex:1;}
+  .dim-field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:.3rem;}
+  .dim-field input[type=number],.dim-field input[type=text]{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.6rem .75rem;font-family:var(--font-body);font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .dim-field input:disabled{opacity:.5;background:var(--bg);}
+  .dim-field input:focus{outline:none;border-color:var(--accent);}
+  .dim-field select{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.6rem .75rem;font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--ink);}
+  .checkbox-row{display:flex;align-items:center;gap:.5rem;margin:.2rem 0 1rem;}
+  .checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+  .checkbox-row label{font-size:13.5px;color:var(--ink-soft);cursor:pointer;}
+
+  .dropzone{border:1.5px dashed var(--line);border-radius:10px;background:var(--bg);padding:2rem 1.2rem;text-align:center;cursor:pointer;transition:border-color .15s;}
+  .dropzone.drag{border-color:var(--accent);background:var(--accent-soft);}
+  .dropzone p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+  .dropzone strong{color:var(--ink);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;background:var(--accent);color:#fff;font-family:var(--font-body);font-weight:600;font-size:14.5px;padding:.8rem 1rem;border-radius:9px;cursor:pointer;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn.secondary{background:transparent;color:var(--ink-soft);border:1px solid var(--line);margin-top:.5rem;}
+  .status{font-size:12.5px;color:var(--ink-soft);margin-top:.7rem;min-height:1.2em;}
+
+  .clip-card{background:var(--bg);border-radius:10px;padding:.8rem .9rem;margin-bottom:.7rem;}
+  .clip-card:last-child{margin-bottom:0;}
+  .clip-head{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
+  .clip-name{flex:1;min-width:0;font-size:12.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .clip-actions{display:flex;gap:2px;flex-shrink:0;}
+  .clip-actions button{border:none;background:transparent;color:var(--ink-faint);font-size:13px;cursor:pointer;padding:4px 6px;border-radius:6px;font-family:var(--font-body);}
+  .clip-actions button:hover{color:var(--ink);background:var(--surface);}
+  .clip-video{width:100%;height:170px;object-fit:contain;border-radius:8px;background:#000;display:block;margin-bottom:.55rem;}
+  .exporting .dropzone, .exporting .clip-actions button, .exporting input, .exporting select, .exporting .seg button{pointer-events:none;opacity:.5;}
+  .trim-slider{position:relative;height:26px;margin:.2rem 0 .3rem;}
+  .trim-track{position:absolute;top:50%;left:0;right:0;height:4px;background:var(--line);border-radius:3px;transform:translateY(-50%);}
+  .trim-range{position:absolute;top:50%;height:4px;background:var(--accent);border-radius:3px;transform:translateY(-50%);}
+  .trim-slider input[type=range]{position:absolute;top:0;left:0;width:100%;height:26px;margin:0;background:transparent;-webkit-appearance:none;appearance:none;pointer-events:none;}
+  .trim-slider input[type=range]::-webkit-slider-thumb{pointer-events:auto;}
+  .trim-slider input[type=range]::-moz-range-thumb{pointer-events:auto;}
+  .trim-slider input[type=range]::-moz-range-track{background:transparent;border:none;}
+  .trim-nums{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:4px;}
+  .trim-nums b{color:var(--ink);font-weight:600;}
+  .clip-setbtns{display:flex;gap:.5rem;margin-top:.5rem;}
+  .clip-setbtns button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:11.5px;padding:.4rem;border-radius:6px;cursor:pointer;font-family:var(--font-body);}
+  .clip-setbtns button:hover{border-color:var(--accent);color:var(--accent);}
+  .progress-wrap{margin-top:.8rem;}
+  .progress-bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:var(--accent);transition:width .25s ease;}
+  .error-box{background:rgba(190,60,40,.1);border:1px solid rgba(190,60,40,.3);color:var(--ink);border-radius:8px;padding:.7rem .9rem;font-size:12.5px;line-height:1.55;margin-top:.7rem;overflow-wrap:anywhere;word-break:break-word;}
+  .result-block{margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--line);}
+  .result-video{width:100%;max-height:360px;object-fit:contain;border-radius:8px;background:#000;display:block;margin-bottom:.6rem;}
+  .result-img{width:100%;max-height:360px;object-fit:contain;border-radius:8px;background:#000;display:block;margin-bottom:.6rem;}
+  .result-audio{width:100%;display:block;margin-bottom:.6rem;}
+  .size-compare{display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem;}
+  .size-compare .sc-box{flex:1;background:var(--bg);border-radius:8px;padding:.6rem .7rem;text-align:center;}
+  .size-compare .sc-box.before .sc-val{color:var(--ink-soft);}
+  .size-compare .sc-box.after .sc-val{color:var(--accent);}
+  .sc-label{font-size:11px;color:var(--ink-faint);margin:0 0 .2rem;}
+  .sc-val{font-size:16px;font-weight:700;margin:0;font-variant-numeric:tabular-nums;}
+  .size-compare .sc-arrow{color:var(--ink-faint);font-size:16px;flex-shrink:0;}
+  .reduce-badge{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;padding:.25rem .6rem;border-radius:20px;margin-bottom:.9rem;}
+
+
+</style>
+</head>
+<body>
+
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
+  <a href="https://claude.ai/artifact/57fALCKrwEiWjC8iEQKiJ5" class="sidebar-home">НаборНаВсе — главная</a>
+  <p class="sidebar-title">Кредиты и ипотека</p>
+  <a href="https://claude.ai/artifact/DkXDrEyTGH7R847rV8DTaL">Ипотечный платёж</a>
+  <a href="https://claude.ai/artifact/8KHDev7UvTQjnswppHFCR8">Досрочное погашение</a>
+  <a href="https://claude.ai/artifact/5EofPg2Q3pe5oDaoFGncYD">Кредитный калькулятор</a>
+  <span class="soon">Рефинансирование<small>скоро</small></span>
+  <p class="sidebar-title">Вклады и накопления</p>
+  <a href="https://claude.ai/artifact/JNRsbnTzxVkYqSDK7zb3RZ">Вклад с капитализацией</a>
+  <a href="https://claude.ai/artifact/W31PKAQ1FgcLGZA1hGCAmh">Накопления на цель</a>
+  <p class="sidebar-title">Налоги и работа</p>
+  <a href="https://claude.ai/artifact/6YrLEZRsHFmFzNbecXYNiv">Зарплата на руки (НДФЛ)</a>
+  <p class="sidebar-title">Даты и проценты</p>
+  <a href="https://claude.ai/artifact/SEkLv6BRDyyuUWMwrnWRgf">Калькулятор процентов</a>
+  <a href="https://claude.ai/artifact/YJy5k61PV7kR4UwaNoyopC">Дни между датами</a>
+  <a href="https://claude.ai/artifact/NzSYhA37MxUY1BFro7y9Ve">Калькулятор возраста</a>
+  <p class="sidebar-title">Конвертеры</p>
+  <a href="https://claude.ai/artifact/CQacwEWqS22cZPJE4Yzwdm">Универсальный конвертер изображений</a>
+  <a href="https://claude.ai/artifact/UeKDtqiS4HriRxVnrkRPw2">Изменение размера изображений</a>
+  <a href="https://claude.ai/artifact/3FiXzkjB2htTcmsnP96RAp">Обрезка изображений</a>
+  <a href="https://claude.ai/artifact/1dNwWhiEpoHvgdbfVoMZax">Универсальный конвертер температуры</a>
+  <a href="https://claude.ai/artifact/V18sNzFeknbhZfCkUE6q2f">Универсальный конвертер длины</a>
+  <a href="https://claude.ai/artifact/Dw5AkbkhrZ9K8LVnPWBxEb">Площадь в материалы для ремонта</a>
+  <span class="soon">PDF в JPG<small>скоро</small></span>
+  <p class="sidebar-title">Видео</p>
+  <a href="https://claude.ai/artifact/24zaqBRejLwpC3hPRFPAyL">Редактор видео</a>
+  <a href="https://claude.ai/artifact/VkyGovYvLM65EiRt8rVesH">Сжатие видео</a>
+  <a href="https://claude.ai/artifact/4xmiwkqQyPFHEVzz5bthVZ">Видео в GIF</a>
+  <a href="https://claude.ai/artifact/FyBK1EwVJRvQZEad7cMnUh" class="active">Извлечь звук из видео</a>
+</nav>
+
+<div class="page" id="page">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Меню инструментов">☰</button>
+      <a class="logo" href="https://claude.ai/artifact/57fALCKrwEiWjC8iEQKiJ5">НаборНаВсе</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Переключить тему">◐</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="page-head">
+      <p class="brand">Видео</p>
+      <h1>Извлечь звук из видео</h1>
+      <p class="lede">Сохраните аудиодорожку из ролика отдельным файлом — выберите фрагмент и формат, всё прямо в браузере.</p>
+    </header>
+
+
+    <div class="panel">
+      <div class="inputs">
+        <p class="panel-eyebrow">Видео</p>
+        <div class="dropzone" id="dropzone">
+          <p><strong>Нажмите, чтобы выбрать видео</strong><br>или перетащите файл сюда</p>
+          <input type="file" id="fileInput" accept="video/*" style="display:none;">
+        </div>
+        <div id="clipCard"></div>
+
+        <p class="panel-eyebrow" style="margin-top:1.4rem;">Настройки звука</p>
+        <p class="label-row" style="margin-bottom:.5rem;"><label>Формат файла</label></p>
+        <div class="seg" id="formatSeg">
+          <button type="button" class="active" data-f="mp3">MP3</button>
+          <button type="button" data-f="m4a">M4A (AAC)</button>
+          <button type="button" data-f="wav">WAV</button>
+        </div>
+
+        <div class="field" id="bitrateField" style="margin-top:.8rem;">
+          <div class="field-top"><label>Битрейт</label></div>
+          <select id="bitrateSelect" style="width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:.6rem .75rem;font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--ink);margin-top:.3rem;">
+            <option value="128">128 кбит/с</option>
+            <option value="192" selected>192 кбит/с</option>
+            <option value="256">256 кбит/с</option>
+          </select>
+        </div>
+        <p class="hint">WAV сохраняется без сжатия — файл выйдет заметно тяжелее, зато без потерь качества.</p>
+      </div>
+
+      <div class="results">
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат</p>
+        <div class="stat-row"><span class="k">Длительность фрагмента</span><span class="v" id="statDur">0:00.0</span></div>
+        <div class="stat-row"><span class="k">Исходный размер видео</span><span class="v" id="statOrigSize">—</span></div>
+
+        <button class="btn" id="extractBtn" disabled style="margin-top:1rem;">Извлечь звук</button>
+        <p class="status" id="status"></p>
+        <div class="progress-wrap" id="progressWrap" style="display:none;">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <div id="errorBox"></div>
+
+        <div class="result-block" id="resultBlock" style="display:none;">
+          <audio class="result-audio" id="resultAudio" controls></audio>
+          <p class="hint" id="resultInfo" style="margin:0 0 .6rem;"></p>
+          <button class="btn" id="downloadBtn">Скачать аудио</button>
+        </div>
+      </div>
+    </div>
+
+    <article>
+      <h2>Как это работает</h2>
+      <p>Звуковая дорожка извлекается из видео <strong>прямо в браузере</strong> — файл не загружается ни на какой сервер. За обработку отвечает движок FFmpeg, собранный в WebAssembly; при первом запуске он подгружается (около 25–30 МБ), поэтому первое извлечение может занять чуть больше времени.</p>
+      <h3>Фрагмент и формат</h3>
+      <p>Можно вырезать только часть ролика ползунком — начало и конец — или оставить всю дорожку целиком. MP3 и M4A — сжатые форматы с настраиваемым битрейтом, подходят для музыки и подкастов. WAV сохраняет звук без сжатия: качество выше, но и файл значительно больше.</p>
+      <p class="disclaimer">Обработка идёт на вашем устройстве, поэтому скорость зависит от браузера и мощности компьютера или телефона. Если у исходного видео нет звуковой дорожки, извлечение завершится ошибкой — лучше всего инструмент работает в последних версиях Chrome, Edge и Safari на компьютере.</p>
+    </article>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. <a href="https://claude.ai/artifact/1iJ1G2iduPgwiGo3aXyEot" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+
+  var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop'), sidebarClose=document.getElementById('sidebarClose');
+  function openNav(){ document.body.classList.add('nav-open'); document.body.style.overflow='hidden'; }
+  function closeNav(){ document.body.classList.remove('nav-open'); document.body.style.overflow=''; }
+  menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
+  backdrop.addEventListener('click', closeNav);
+  sidebarClose.addEventListener('click', closeNav);
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeNav(); });
+  try{ var saved=localStorage.getItem('podschet-theme'); if(saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var next = cur==='dark' ? 'light' : (cur==='light' ? null : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+    if(next){ document.documentElement.setAttribute('data-theme', next); } else { document.documentElement.removeAttribute('data-theme'); }
+    try{ localStorage.setItem('podschet-theme', next || ''); }catch(e){}
+  });
+
+
+  function escapeHtml(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+  function prettySize(b){ return b>1024*1024 ? (b/1024/1024).toFixed(1)+' МБ' : Math.round(b/1024)+' КБ'; }
+  function fmtTime(s){
+    s=Math.max(0,s||0);
+    s=Math.round(s*10)/10;
+    var m=Math.floor(s/60), sec=s-m*60;
+    return m+':'+(sec<10?'0':'')+sec.toFixed(1);
+  }
+  function setProgress(pct){ var pf=document.getElementById('progressFill'); if(pf) pf.style.width=Math.max(0,Math.min(100,Math.round(pct)))+'%'; }
+
+
+  var ffmpegInstance=null, ffmpegLoading=null, activeProgressCb=null;
+
+  function loadScriptOnce(src){
+    return new Promise(function(resolve,reject){
+      var existing=document.querySelector('script[data-src="'+src+'"]');
+      if(existing){ resolve(); return; }
+      var s=document.createElement('script');
+      s.src=src; s.dataset.src=src;
+      s.onload=function(){ resolve(); };
+      s.onerror=function(){ reject(new Error('Не удалось загрузить видеодвижок. Проверьте подключение к интернету и попробуйте ещё раз.')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function ensureFFmpeg(){
+    if(ffmpegInstance) return Promise.resolve(ffmpegInstance);
+    if(ffmpegLoading) return ffmpegLoading;
+    ffmpegLoading = (async function(){
+      await loadScriptOnce('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
+      await loadScriptOnce('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js');
+      var FFmpeg = window.FFmpegWASM.FFmpeg;
+      var ff = new FFmpeg();
+      var baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+      var coreURL = await window.FFmpegUtil.toBlobURL(baseURL+'/ffmpeg-core.js', 'text/javascript');
+      var wasmURL = await window.FFmpegUtil.toBlobURL(baseURL+'/ffmpeg-core.wasm', 'application/wasm');
+      var classWorkerURL = await window.FFmpegUtil.toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
+      await ff.load({coreURL: coreURL, wasmURL: wasmURL, classWorkerURL: classWorkerURL});
+      ff.on('progress', function(ev){ if(activeProgressCb) activeProgressCb(ev); });
+      ffmpegInstance = ff;
+      return ff;
+    })();
+    return ffmpegLoading;
+  }
+
+  function extOf(name, fallback){
+    var m = /\.([a-z0-9]+)$/i.exec(name);
+    return m ? m[1].toLowerCase() : fallback;
+  }
+
+
+  var dropzone=document.getElementById('dropzone'), fileInput=document.getElementById('fileInput'), clipCard=document.getElementById('clipCard');
+  var formatSeg=document.getElementById('formatSeg'), bitrateField=document.getElementById('bitrateField'), bitrateSelect=document.getElementById('bitrateSelect');
+  var statDur=document.getElementById('statDur'), statOrigSize=document.getElementById('statOrigSize');
+  var extractBtn=document.getElementById('extractBtn'), status=document.getElementById('status');
+  var progressWrap=document.getElementById('progressWrap'), errorBox=document.getElementById('errorBox');
+  var resultBlock=document.getElementById('resultBlock'), resultAudio=document.getElementById('resultAudio'), resultInfo=document.getElementById('resultInfo'), downloadBtn=document.getElementById('downloadBtn');
+
+  var currentFile=null, meta=null, format='mp3';
+  var lastResultBlob=null, lastExt='mp3';
+
+  dropzone.addEventListener('click', function(){ fileInput.click(); });
+  ['dragover','dragenter'].forEach(function(ev){ dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.add('drag'); }); });
+  ['dragleave','drop'].forEach(function(ev){ dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.remove('drag'); }); });
+  dropzone.addEventListener('drop', function(e){ if(e.dataTransfer.files[0]) addFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', function(){ if(fileInput.files[0]) addFile(fileInput.files[0]); fileInput.value=''; });
+
+  function addFile(file){
+    if(!/^video\//.test(file.type) && !/\.(mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(file.name)) return;
+    if(currentFile && currentFile.url){ try{ URL.revokeObjectURL(currentFile.url); }catch(e){} }
+    var url=URL.createObjectURL(file);
+    currentFile={file:file, url:url, name:file.name, size:file.size};
+    meta=null;
+    resultBlock.style.display='none'; errorBox.innerHTML=''; extractBtn.disabled=true;
+    renderClip();
+  }
+
+  function updateTrimVisual(){
+    var dur=meta.duration||1;
+    var leftPct=(meta.start/dur)*100, rightPct=(meta.end/dur)*100;
+    var rangeEl=clipCard.querySelector('.trim-range');
+    rangeEl.style.left=leftPct+'%';
+    rangeEl.style.width=Math.max(0,rightPct-leftPct)+'%';
+    clipCard.querySelector('.startLabel').textContent=fmtTime(meta.start);
+    clipCard.querySelector('.endLabel').textContent=fmtTime(meta.end);
+    clipCard.querySelector('.durLabel').textContent=fmtTime(Math.max(0,meta.end-meta.start));
+    statDur.textContent=fmtTime(Math.max(0,meta.end-meta.start));
+  }
+
+  function renderClip(){
+    clipCard.innerHTML = '<div class="clip-card"><div class="clip-head"><span class="clip-name">'+escapeHtml(currentFile.name)+'</span>'+
+      '<div class="clip-actions"><button class="clipRemove" type="button" title="Убрать">✕</button></div></div>'+
+      '<video class="clip-video" src="'+currentFile.url+'" preload="metadata" controls></video>'+
+      '<div class="trim-slider"><div class="trim-track"></div><div class="trim-range"></div>'+
+      '<input type="range" class="trimStart" min="0" max="1" step="0.1" value="0">'+
+      '<input type="range" class="trimEnd" min="0" max="1" step="0.1" value="1"></div>'+
+      '<div class="trim-nums"><span>Начало: <b class="startLabel"></b></span><span>Длина: <b class="durLabel"></b></span><span>Конец: <b class="endLabel"></b></span></div>'+
+      '<div class="clip-setbtns"><button class="setStart" type="button">⏺ Начало сюда</button><button class="setEnd" type="button">⏺ Конец сюда</button></div>'+
+      '</div>';
+    var videoEl=clipCard.querySelector('.clip-video');
+    var startInput=clipCard.querySelector('.trimStart'), endInput=clipCard.querySelector('.trimEnd');
+    var minGap=0.2;
+
+    videoEl.addEventListener('loadedmetadata', function(){
+      meta={duration:videoEl.duration, start:0, end:videoEl.duration};
+      startInput.max=videoEl.duration; endInput.max=videoEl.duration; endInput.value=videoEl.duration;
+      statOrigSize.textContent=prettySize(currentFile.size);
+      extractBtn.disabled=false;
+      updateTrimVisual();
+    }, {once:true});
+
+    startInput.addEventListener('input', function(){
+      if(!meta) return;
+      var v=parseFloat(startInput.value);
+      if(v>meta.end-minGap) v=Math.max(0, meta.end-minGap);
+      meta.start=v; startInput.value=v;
+      try{ videoEl.currentTime=v; }catch(e){}
+      updateTrimVisual();
+    });
+    endInput.addEventListener('input', function(){
+      if(!meta) return;
+      var v=parseFloat(endInput.value);
+      if(v<meta.start+minGap) v=Math.min(meta.duration, meta.start+minGap);
+      meta.end=v; endInput.value=v;
+      try{ videoEl.currentTime=v; }catch(e){}
+      updateTrimVisual();
+    });
+    clipCard.querySelector('.setStart').addEventListener('click', function(){
+      if(!meta) return;
+      var v=Math.max(0, Math.min(videoEl.currentTime, meta.end-minGap));
+      meta.start=v; startInput.value=v; updateTrimVisual();
+    });
+    clipCard.querySelector('.setEnd').addEventListener('click', function(){
+      if(!meta) return;
+      var v=Math.min(meta.duration, Math.max(videoEl.currentTime, meta.start+minGap));
+      meta.end=v; endInput.value=v; updateTrimVisual();
+    });
+    clipCard.querySelector('.clipRemove').addEventListener('click', function(){
+      try{ URL.revokeObjectURL(currentFile.url); }catch(e){}
+      currentFile=null; meta=null; clipCard.innerHTML='';
+      statDur.textContent='0:00.0'; statOrigSize.textContent='—';
+      extractBtn.disabled=true; resultBlock.style.display='none';
+    });
+  }
+
+  formatSeg.addEventListener('click', function(e){
+    var btn=e.target.closest('button'); if(!btn) return;
+    formatSeg.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active'); format=btn.dataset.f;
+    bitrateField.style.display = format==='wav' ? 'none' : 'block';
+  });
+
+  extractBtn.addEventListener('click', async function(){
+    if(!currentFile || !meta) return;
+    errorBox.innerHTML=''; resultBlock.style.display='none';
+    extractBtn.disabled=true;
+    document.body.classList.add('exporting');
+    progressWrap.style.display='block'; setProgress(0);
+    status.textContent='Загрузка видеодвижка…';
+
+    var start=meta.start, dur=Math.max(0.1, meta.end-meta.start);
+    var br=bitrateSelect.value;
+
+    activeProgressCb=function(ev){ var frac=Math.min(1,Math.max(0,ev&&ev.progress||0)); setProgress(frac*100); };
+
+    try{
+      var ff=await ensureFFmpeg();
+      status.textContent='Извлекаю звук…';
+      var ext=extOf(currentFile.name,'mp4');
+      var inName='in.'+ext, outName='out.'+format;
+      await ff.writeFile(inName, await window.FFmpegUtil.fetchFile(currentFile.file));
+
+      var args=['-ss', String(start), '-i', inName, '-t', String(dur), '-vn'];
+      if(format==='mp3'){ args.push('-c:a','libmp3lame','-b:a', br+'k'); }
+      else if(format==='m4a'){ args.push('-c:a','aac','-b:a', br+'k'); }
+      else { args.push('-c:a','pcm_s16le'); }
+      args.push(outName);
+
+      await ff.exec(args);
+      setProgress(100);
+      status.textContent='Готово!';
+      var data=await ff.readFile(outName);
+      var mime = format==='mp3' ? 'audio/mpeg' : (format==='m4a' ? 'audio/mp4' : 'audio/wav');
+      var blob=new Blob([data], {type:mime});
+      try{ await ff.deleteFile(inName); }catch(e){}
+      try{ await ff.deleteFile(outName); }catch(e){}
+      var url=URL.createObjectURL(blob);
+      resultAudio.src=url;
+      resultInfo.textContent='Размер файла: '+prettySize(blob.size)+' · длительность ~'+fmtTime(dur);
+      resultBlock.style.display='block';
+      lastResultBlob=blob; lastExt=format;
+    }catch(err){
+      console.error(err);
+      var msg = err && err.message ? err.message : 'неизвестная ошибка';
+      errorBox.innerHTML='<div class="error-box">Не получилось извлечь звук: '+escapeHtml(msg)+'. Убедитесь, что в видео есть звуковая дорожка, попробуйте другой формат или обновите страницу и повторите попытку.</div>';
+      status.textContent=''; progressWrap.style.display='none';
+    }finally{
+      activeProgressCb=null; extractBtn.disabled=false; document.body.classList.remove('exporting');
+    }
+  });
+
+  downloadBtn.addEventListener('click', async function(){
+    if(!lastResultBlob) return;
+    var filename='audio.'+lastExt;
+    var downloads=null;
+    try{ downloads = await claude.use('downloads'); }catch(e){ downloads=null; }
+    if(downloads){ try{ await downloads.save({filename:filename, data:lastResultBlob}); return; }catch(e){} }
+    var a=document.createElement('a'); a.href=resultAudio.src; a.download=filename;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+})();
+</script>
+</body>
+</html>

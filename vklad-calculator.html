@@ -37,8 +37,9 @@
 
   /* sidebar drawer */
   .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
-    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;}
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;overscroll-behavior:contain;}
   body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open{position:fixed;left:0;right:0;overflow:hidden;}
   .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
   .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
   .sidebar-title:first-child{margin-top:0;}
@@ -51,7 +52,7 @@
   .sidebar-search::placeholder{color:var(--ink-faint);}
   .sidebar-search:focus{outline:none;border-color:var(--accent);}
   .sidebar-title{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
-  .sidebar-title::after{content:'\25BE';font-size:10px;color:var(--ink-faint);flex-shrink:0;}
+  .sidebar-title::after{content:'\25BE';font-size:16px;line-height:1;color:var(--ink-soft);flex-shrink:0;}
   .sidebar-title.collapsed::after{content:'\25B8';}
   .sidebar-item-hidden{display:none !important;}
   .sidebar-no-match{font-size:12.5px;color:var(--ink-faint);padding:.3rem .6rem;display:none;}
@@ -171,14 +172,14 @@
   <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
   <a href="kreditny-kalkulyator.html">Кредитный калькулятор</a>
   <a href="avtokredit-calculator.html">Автокредит</a>
-  <a href="vklad-calculator.html" class="active">Пополняемый вклад</a>
-  <a href="inflyatsiya-calculator.html">Калькулятор инфляции</a>
-  <a href="pensiya-calculator.html">Пенсия и финансовая независимость</a>
-  <a href="investitsii-calculator.html">Доходность инвестиций</a>
   <span class="soon">Рефинансирование<small>скоро</small></span>
   <p class="sidebar-title">Вклады и накопления</p>
   <a href="vklad-protsenty.html">Вклад с капитализацией</a>
   <a href="nakopleniya-na-tsel.html">Накопления на цель</a>
+  <a href="vklad-calculator.html" class="active">Пополняемый вклад</a>
+  <a href="inflyatsiya-calculator.html">Калькулятор инфляции</a>
+  <a href="pensiya-calculator.html">Пенсия и финансовая независимость</a>
+  <a href="investitsii-calculator.html">Доходность инвестиций</a>
   <p class="sidebar-title">Налоги и работа</p>
   <a href="zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
   <p class="sidebar-title">Даты и проценты</p>
@@ -197,6 +198,9 @@
   <span class="soon">PDF в JPG<small>скоро</small></span>
   <p class="sidebar-title">Видео</p>
   <a href="redaktor-video.html">Редактор видео</a>
+  <a href="szhatie-video.html">Сжатие видео</a>
+  <a href="video-v-gif.html">Видео в GIF</a>
+  <a href="izvlech-zvuk.html">Извлечь звук из видео</a>
 </nav>
 
 <div class="page" id="page">
@@ -329,10 +333,14 @@
       while(el && !el.classList.contains('sidebar-title')){ items.push(el); el=el.nextElementSibling; }
       return {title:t, items:items, collapsed:false};
     });
-    var CKEY='nabor-sidebar-collapsed';
-    var saved={};
-    try{ (JSON.parse(localStorage.getItem(CKEY)||'[]')).forEach(function(k){ saved[k]=true; }); }catch(e){}
-    sections.forEach(function(s){ s.collapsed=!!saved[s.title.textContent.trim()]; });
+    var CKEY='nabor-sidebar-collapsed-v2';
+    var overrides={};
+    try{ overrides=JSON.parse(localStorage.getItem(CKEY)||'{}'); }catch(e){}
+    sections.forEach(function(s){
+      var key=s.title.textContent.trim();
+      var hasActive=s.items.some(function(it){ return it.classList && it.classList.contains('active'); });
+      s.collapsed = overrides.hasOwnProperty(key) ? !!overrides[key] : !hasActive;
+    });
     var search=document.getElementById('sidebarSearch');
     function query(){ return search ? search.value.trim().toLowerCase() : ''; }
     function render(){
@@ -358,10 +366,8 @@
       s.title.addEventListener('click', function(){
         if(query()) return;
         s.collapsed=!s.collapsed;
-        try{
-          var keys=sections.filter(function(x){return x.collapsed;}).map(function(x){return x.title.textContent.trim();});
-          localStorage.setItem(CKEY, JSON.stringify(keys));
-        }catch(e){}
+        overrides[s.title.textContent.trim()]=s.collapsed;
+        try{ localStorage.setItem(CKEY, JSON.stringify(overrides)); }catch(e){}
         render();
       });
     });
@@ -370,8 +376,17 @@
   })();
 
   var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop'), sidebarClose=document.getElementById('sidebarClose');
-  function openNav(){ document.body.classList.add('nav-open'); document.body.style.overflow='hidden'; }
-  function closeNav(){ document.body.classList.remove('nav-open'); document.body.style.overflow=''; }
+  var navScrollY=0;
+  function openNav(){
+    navScrollY=window.scrollY||window.pageYOffset||0;
+    document.body.style.top='-'+navScrollY+'px';
+    document.body.classList.add('nav-open');
+  }
+  function closeNav(){
+    document.body.classList.remove('nav-open');
+    document.body.style.top='';
+    window.scrollTo(0, navScrollY);
+  }
   menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
   backdrop.addEventListener('click', closeNav);
   sidebarClose.addEventListener('click', closeNav);
@@ -404,6 +419,5 @@
   calc();
 })();
 </script>
-<script src="cookie-consent.js" defer></script>
 </body>
 </html>

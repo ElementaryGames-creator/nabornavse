@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Калькулятор пополняемого вклада с капитализацией — НаборНаВсе</title>
+<meta name="description" content="Онлайн-калькулятор вклада с ежемесячным пополнением: итоговая сумма, начисленные проценты и эффект капитализации — ежемесячной, ежегодной или без неё.">
+<style>
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/inter-600.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/inter-700.woff2') format('woff2');}
+  :root{
+    --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
+    --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
+    --radius:10px; --font-body:'Inter', -apple-system, Segoe UI, Roboto, sans-serif;
+    --sidebar-w:270px;
+    --shadow:0 1px 2px rgba(20,24,30,.03), 0 10px 24px -16px rgba(20,24,30,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+      --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+    --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow-wrap:anywhere;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+
+  /* sidebar drawer */
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;}
+  body.nav-open .sidebar{transform:translateX(0);}
+  .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+  .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
+  .sidebar-title:first-child{margin-top:0;}
+  .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .sidebar a:hover{background:var(--bg);}
+  .sidebar span.soon{color:var(--ink-faint);}
+  .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .sidebar-search{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.5rem .7rem;font-family:var(--font-body);font-size:13.5px;color:var(--ink);margin:.2rem 0 1rem;}
+  .sidebar-search::placeholder{color:var(--ink-faint);}
+  .sidebar-search:focus{outline:none;border-color:var(--accent);}
+  .sidebar-title{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
+  .sidebar-title::after{content:'\25BE';font-size:10px;color:var(--ink-faint);flex-shrink:0;}
+  .sidebar-title.collapsed::after{content:'\25B8';}
+  .sidebar-item-hidden{display:none !important;}
+  .sidebar-no-match{font-size:12.5px;color:var(--ink-faint);padding:.3rem .6rem;display:none;}
+  .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
+  body.nav-open .backdrop{opacity:1;pointer-events:auto;}
+
+  .page{min-height:100vh;}
+
+  .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .site-header-inner{max-width:900px;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .menu-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .logo{font-weight:700;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:1;}
+  .theme-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+
+  header.page-head{padding:1.3rem 0 1.1rem;}
+  .brand{font-size:12px;color:var(--ink-faint);margin:0 0 .4rem;}
+  h1{font-weight:700;font-size:clamp(20px,3vw,26px);line-height:1.2;margin:0 0 .35rem;max-width:20ch;}
+  .lede{color:var(--ink-soft);font-size:13.5px;line-height:1.45;max-width:54ch;margin:0;}
+
+  .panel{display:grid;grid-template-columns:1.1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  @media (max-width:720px){ .panel{grid-template-columns:1fr;} }
+  .inputs{padding:1.3rem 1.3rem;border-right:1px solid var(--line);min-width:0;}
+  @media (max-width:720px){ .inputs{border-right:none;border-bottom:1px solid var(--line);} }
+
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:1rem;}
+  .seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font-family:var(--font-body);font-size:13px;padding:.5rem;border-radius:6px;cursor:pointer;}
+  .seg button.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+
+  .field{margin-bottom:.6rem;background:var(--bg);border-radius:10px;padding:.8rem .9rem .85rem;}
+  .field:last-child{margin-bottom:0;}
+  .field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;gap:8px;}
+  .field-top label{font-size:13.5px;color:var(--ink-soft);}
+  .val-input{font-family:var(--font-body);font-weight:600;font-size:15.5px;text-align:right;background:transparent;
+    border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);width:13ch;padding:2px 2px;
+    font-variant-numeric:tabular-nums;cursor:text;}
+  .val-input:hover{border-bottom-color:var(--accent);}
+  .val-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--line);border-radius:3px;outline:none;margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .menu-btn:hover, .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .seg button:hover:not(.active){color:var(--ink);}
+  .info-btn:active, .menu-btn:active, .theme-btn:active{transform:scale(.94);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  .range-labels{display:flex;justify-content:space-between;margin-top:.3rem;}
+  .range-labels span{font-size:11.5px;color:var(--ink-faint);}
+  .derived{font-size:12.5px;color:var(--ink-soft);margin-top:.5rem;}
+  .derived b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .hint{font-size:11px;color:var(--ink-faint);margin:.6rem 0 0;}
+
+  .results{padding:1.3rem 1.3rem;background:var(--accent-soft);min-width:0;}
+  .panel-eyebrow{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:0 0 1.3rem;}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .result-label{font-size:12.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .result-big{font-weight:700;font-size:clamp(32px,4.6vw,40px);line-height:1;margin:0 0 1.5rem;font-variant-numeric:tabular-nums;}
+  .result-big small{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:6px;}
+  .result-pair{display:flex;gap:1.6rem;margin-bottom:1.5rem;}
+  .result-pair div p:first-child{font-size:12px;color:var(--ink-soft);margin:0 0 .25rem;}
+  .result-pair div p:last-child{font-weight:700;font-size:22px;margin:0;font-variant-numeric:tabular-nums;}
+
+  .bar{height:9px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:.55rem;background:var(--line);}
+  .bar-principal{background:var(--accent);height:100%;}
+  .bar-interest{background:var(--accent-2);height:100%;}
+  .bar-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:1.6rem;}
+  .bar-legend .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;}
+
+  .stat-row{display:flex;justify-content:space-between;padding:.65rem 0;border-top:1px solid var(--line);}
+  .stat-row:first-of-type{border-top:none;}
+  .stat-row .k{font-size:13px;color:var(--ink-soft);}
+  .stat-row .v{font-size:14px;font-variant-numeric:tabular-nums;font-weight:500;}
+
+  article{max-width:64ch;margin:2rem auto 0;padding:1.7rem 0 2.2rem;border-top:1px solid var(--line);}
+  article h2{font-weight:700;font-size:20px;margin:0 0 .8rem;}
+  article h2 + p{margin-top:0;}
+  article h3{font-size:15px;font-weight:600;margin:1.6rem 0 .5rem;}
+  article p{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;}
+  article strong{color:var(--ink);font-weight:600;}
+  .disclaimer{font-size:12.5px;color:var(--ink-faint);margin-top:1.8rem;}
+
+  .site-footer{border-top:1px solid var(--line);padding:1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:1rem;}
+  .site-footer p{font-size:12.5px;color:var(--ink-faint);margin:0;}
+
+  @media (max-width:640px){
+    .sidebar{width:84vw;max-width:300px;}
+  }
+
+  .label-row{display:flex;align-items:center;margin-bottom:.5rem;}
+  .label-row label{font-size:13.5px;color:var(--ink-soft);}
+  .info-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;
+    border:1px solid var(--ink-faint);color:var(--ink-faint);background:transparent;font-size:11px;cursor:pointer;
+    margin-left:6px;flex-shrink:0;line-height:1;padding:0;}
+  .info-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,17,20,.4);opacity:0;pointer-events:none;transition:opacity .2s;
+    z-index:50;display:flex;align-items:center;justify-content:center;padding:1.2rem;}
+  .modal-backdrop.open{opacity:1;pointer-events:auto;}
+  .modal{background:var(--surface);border-radius:12px;max-width:420px;width:100%;padding:1.5rem 1.5rem 1.3rem;box-shadow:0 20px 60px -20px rgba(0,0,0,.35);
+    border:1px solid var(--line);transform:translateY(8px);transition:transform .2s;}
+  .modal-backdrop.open .modal{transform:translateY(0);}
+  .modal h3{margin:0 0 .7rem;font-size:16px;}
+  .modal p{margin:0 0 .6rem;color:var(--ink-soft);font-size:13.5px;line-height:1.6;}
+  .modal-close{margin-top:.4rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+    padding:.45rem 1rem;border-radius:7px;font-size:13px;cursor:pointer;}
+  .seg button{padding:.5rem .15rem;}
+</style>
+</head>
+<body>
+
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
+  <a href="index.html" class="sidebar-home">НаборНаВсе — главная</a>
+  <input type="text" class="sidebar-search" id="sidebarSearch" placeholder="Поиск по инструментам…" autocomplete="off">
+  <p class="sidebar-title">Кредиты и ипотека</p>
+  <a href="ipoteka-calculator.html">Ипотечный платёж</a>
+  <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
+  <a href="kreditny-kalkulyator.html">Кредитный калькулятор</a>
+  <a href="avtokredit-calculator.html">Автокредит</a>
+  <a href="vklad-calculator.html" class="active">Пополняемый вклад</a>
+  <a href="inflyatsiya-calculator.html">Калькулятор инфляции</a>
+  <a href="pensiya-calculator.html">Пенсия и финансовая независимость</a>
+  <a href="investitsii-calculator.html">Доходность инвестиций</a>
+  <span class="soon">Рефинансирование<small>скоро</small></span>
+  <p class="sidebar-title">Вклады и накопления</p>
+  <a href="vklad-protsenty.html">Вклад с капитализацией</a>
+  <a href="nakopleniya-na-tsel.html">Накопления на цель</a>
+  <p class="sidebar-title">Налоги и работа</p>
+  <a href="zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
+  <p class="sidebar-title">Даты и проценты</p>
+  <a href="protsenty-kalkulyator.html">Калькулятор процентов</a>
+  <a href="dni-mezhdu-datami.html">Дни между датами</a>
+  <a href="kalkulyator-vozrasta.html">Калькулятор возраста</a>
+  <p class="sidebar-title">Конвертеры</p>
+  <a href="konverter-izobrazheniy.html">Универсальный конвертер изображений</a>
+  <a href="izmenenie-razmera.html">Изменение размера изображений</a>
+  <a href="obrezka-izobrazheniy.html">Обрезка изображений</a>
+  <a href="konverter-temperatury.html">Универсальный конвертер температуры</a>
+  <a href="konverter-dliny.html">Универсальный конвертер длины</a>
+  <a href="konverter-materialov.html">Площадь в материалы для ремонта</a>
+  <a href="edinitsy-izmereniya.html">Вес, объём, площадь, скорость</a>
+  <a href="davlenie-energiya-dannye.html">Давление, энергия, данные</a>
+  <span class="soon">PDF в JPG<small>скоро</small></span>
+  <p class="sidebar-title">Видео</p>
+  <a href="redaktor-video.html">Редактор видео</a>
+</nav>
+
+<div class="page" id="page">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Меню инструментов">☰</button>
+      <a class="logo" href="index.html">НаборНаВсе</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Переключить тему">◐</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="page-head">
+      <p class="brand">Финансовые калькуляторы</p>
+      <h1>Калькулятор пополняемого вклада</h1>
+      <p class="lede">Посчитайте итоговую сумму и проценты по вкладу с ежемесячными пополнениями и капитализацией.</p>
+    </header>
+
+    <div class="panel">
+      <div class="inputs">
+        <p class="panel-eyebrow">Параметры вклада</p>
+        <div class="label-row"><label>Капитализация процентов</label><button class="info-btn" type="button" data-term="cap">?</button></div>
+        <div class="seg" id="seg_cap"><button class="active" data-val="m">Ежемесячная</button><button data-val="y">Ежегодная</button><button data-val="n">Без капитализации</button></div>
+        <div class="field">
+          <div class="field-top"><label for="init">Начальная сумма</label><input class="val-input" id="initVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="init" min="0" max="50000000" step="10000" value="500000">
+          <div class="range-labels"><span>0 ₽</span><span>50 млн</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="contrib">Ежемесячное пополнение</label><input class="val-input" id="contribVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="contrib" min="0" max="1000000" step="1000" value="20000">
+          <div class="range-labels"><span>0 ₽</span><span>1 млн</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="rate">Процентная ставка (годовых)</label><input class="val-input" id="rateVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="rate" min="0.1" max="30" step="0.1" value="16">
+          <div class="range-labels"><span>0,1%</span><span>30%</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="term">Срок вклада</label><input class="val-input" id="termVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="term" min="3" max="120" step="1" value="24">
+          <div class="range-labels"><span>3 мес.</span><span>10 лет</span></div>
+        </div>
+      </div>
+
+      <div class="results">
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат расчёта</p>
+        <p class="live-badge"><span class="live-dot"></span>Пересчитывается автоматически</p>
+        <p class="result-label" id="r1L">—</p>
+        <p class="result-big" id="r1">—</p>
+        <div class="bar" aria-hidden="true"><div class="bar-principal" id="barA" style="width:50%"></div><div class="bar-interest" id="barB" style="width:50%"></div></div>
+        <div class="bar-legend"><span><span class="dot" style="background:var(--accent)"></span>Внесено</span><span><span class="dot" style="background:var(--accent-2)"></span>Проценты</span></div>
+        <div class="stat-row"><span class="k" id="s1L">Всего внесено</span><span class="v" id="s1">—</span></div>
+        <div class="stat-row"><span class="k" id="s2L">Начислено процентов</span><span class="v" id="s2">—</span></div>
+        <div class="stat-row"><span class="k" id="s3L">Средний доход в месяц</span><span class="v" id="s3">—</span></div>
+      </div>
+    </div>
+
+    <article>
+      <h2>Как считается доход по вкладу</h2>
+      <p>Проценты начисляются каждый месяц на остаток по ставке <strong>годовая ставка ÷ 12</strong>. При <strong>капитализации</strong> начисленные проценты добавляются к сумме вклада и дальше сами приносят доход, поэтому ежемесячная капитализация даёт больше, чем ежегодная, а без капитализации проценты считаются только на внесённые деньги.</p>
+      <p>Пополнения вносятся в конце каждого месяца, кроме последнего (внесённые в последний день деньги проценты уже не заработают).</p>
+      <h3>Что не учитывает калькулятор</h3>
+      <p>Расчёт не учитывает налог: проценты по вкладам облагаются НДФЛ сверх необлагаемого лимита, который зависит от ключевой ставки на начало года, — актуальный порог уточняйте на сайте ФНС. Также не учитываются досрочное снятие, изменение ставки и страховое покрытие вкладов (по закону застрахованы суммы в пределах лимита АСВ).</p>
+      <p class="disclaimer">Расчёт носит справочный характер и не является публичной офертой или финансовой консультацией. Условия вклада уточняйте в банке.</p>
+    </article>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© НаборНаВсе — справочные финансовые калькуляторы. Не является финансовой консультацией. <a href="politika-konfidentsialnosti.html" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">—</h3>
+    <div id="modalBody"></div>
+    <button class="modal-close" id="modalClose">Понятно</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TERMS = {"cap": {"title": "Капитализация процентов", "html": "<p><strong>Ежемесячная</strong> — проценты каждый месяц добавляются к вкладу и дальше приносят доход. <strong>Ежегодная</strong> — добавляются раз в 12 месяцев. <strong>Без капитализации</strong> — проценты выплачиваются отдельно и на себя не начисляются.</p><p>Чем чаще капитализация и дольше срок, тем заметнее разница.</p>"}};
+  var modalBackdrop=document.getElementById('modalBackdrop'), modalTitle=document.getElementById('modalTitle'), modalBody=document.getElementById('modalBody');
+  function openModal(t){ modalTitle.textContent=t.title; modalBody.innerHTML=t.html; modalBackdrop.classList.add('open'); }
+  function closeModal(){ modalBackdrop.classList.remove('open'); }
+  document.querySelectorAll('.info-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal(TERMS[btn.dataset.term]); }); });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  function fv(S,C,rm,N){ return rm===0 ? S+C*N : S*Math.pow(1+rm,N)+C*(Math.pow(1+rm,N)-1)/rm; }
+  function solveRm(S,C,N,target){ var lo=-0.2,hi=0.2; for(var k=0;k<100;k++){ var mid=(lo+hi)/2; if(fv(S,C,mid,N)<target) lo=mid; else hi=mid; } return (lo+hi)/2; }
+  function deposit(P0,C,r,n,cap){ var bal=P0,pr=P0,acc=0,paid=0; for(var m=1;m<=n;m++){ var it=bal*r; if(cap==='m') bal+=it; else if(cap==='y'){ acc+=it; if(m%12===0){ bal+=acc; acc=0; } } else paid+=it; if(m<n){ bal+=C; pr+=C; } } return {total:bal+acc+paid, principal:pr}; }
+
+  function $(id){ return document.getElementById(id); }
+  function v(id){ return parseFloat($(id).value); }
+  function T(id,t){ $(id).textContent=t; }
+  function pluralYears(n){ n=Math.round(n); var a=n%10,b=n%100; if(a===1&&b!==11) return n+' год'; if(a>=2&&a<=4&&(b<10||b>=20)) return n+' года'; return n+' лет'; }
+  function monthsText(m){ m=Math.round(m); var y=Math.floor(m/12), r=m%12; return y>0 ? pluralYears(y)+(r?' '+r+' мес.':'') : m+' мес.'; }
+  var F={ rub:function(n){ return Math.round(n).toLocaleString('ru-RU')+' \u20BD'; },
+          pct:function(n){ return n.toFixed(1).replace('.',',')+'%'; }, pct2:function(n){ return n.toFixed(2).replace('.',',')+'%'; },
+          yrs:pluralYears, age:pluralYears, mon:function(n){ return Math.round(n)+' мес.'; } };
+  var E={ rub:function(n){ return String(Math.round(n)); }, pct:String, yrs:function(n){ return String(Math.round(n)); }, age:function(n){ return String(Math.round(n)); }, mon:function(n){ return String(Math.round(n)); } };
+  function paintRange(el){ var mn=parseFloat(el.min), mx=parseFloat(el.max), p=Math.min(100,Math.max(0,(parseFloat(el.value)-mn)/(mx-mn)*100)); el.style.background='linear-gradient(to right, var(--accent) '+p+'%, var(--line) '+p+'%)'; }
+  function field(id,mn,mx,kind){
+    var r=$(id), inp=$(id+'Val');
+    function sync(){ inp.value=F[kind](parseFloat(r.value)); paintRange(r); }
+    r.addEventListener('input', function(){ sync(); calc(); });
+    inp.addEventListener('focus', function(){ inp.value=E[kind](parseFloat(r.value)); inp.select(); });
+    inp.addEventListener('blur', function(){ var x=parseFloat(inp.value.replace(/\s/g,'').replace(',','.').replace(/[^0-9.\-]/g,'')); if(isNaN(x)) x=parseFloat(r.value); r.value=Math.min(mx,Math.max(mn,x)); sync(); calc(); });
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter') inp.blur(); });
+    sync();
+  }
+  var S={};
+  function seg(id){
+    var box=$('seg_'+id); S[id]=box.querySelector('.active').dataset.val;
+    box.querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){
+      box.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); }); b.classList.add('active'); S[id]=b.dataset.val; calc(); }); });
+  }
+  function bar(p){ p=Math.max(0,Math.min(100,p)); $('barA').style.width=p+'%'; $('barB').style.width=(100-p)+'%'; }
+  function showModes(){ document.querySelectorAll('[data-show]').forEach(function(el){ el.style.display = el.dataset.show.split(',').indexOf(S.mode)>=0 ? '' : 'none'; }); }
+  (function(){
+    var sb=document.getElementById('sidebar');
+    if(!sb) return;
+    var titles=Array.prototype.slice.call(sb.querySelectorAll('.sidebar-title'));
+    var sections=titles.map(function(t){
+      var items=[], el=t.nextElementSibling;
+      while(el && !el.classList.contains('sidebar-title')){ items.push(el); el=el.nextElementSibling; }
+      return {title:t, items:items, collapsed:false};
+    });
+    var CKEY='nabor-sidebar-collapsed';
+    var saved={};
+    try{ (JSON.parse(localStorage.getItem(CKEY)||'[]')).forEach(function(k){ saved[k]=true; }); }catch(e){}
+    sections.forEach(function(s){ s.collapsed=!!saved[s.title.textContent.trim()]; });
+    var search=document.getElementById('sidebarSearch');
+    function query(){ return search ? search.value.trim().toLowerCase() : ''; }
+    function render(){
+      var q=query();
+      sections.forEach(function(s){
+        if(q){
+          var any=false;
+          s.items.forEach(function(it){
+            var ok=it.textContent.toLowerCase().indexOf(q)!==-1;
+            it.classList.toggle('sidebar-item-hidden', !ok);
+            if(ok) any=true;
+          });
+          s.title.classList.remove('collapsed');
+          s.title.style.display = any ? '' : 'none';
+        } else {
+          s.title.style.display='';
+          s.title.classList.toggle('collapsed', s.collapsed);
+          s.items.forEach(function(it){ it.classList.toggle('sidebar-item-hidden', s.collapsed); });
+        }
+      });
+    }
+    sections.forEach(function(s){
+      s.title.addEventListener('click', function(){
+        if(query()) return;
+        s.collapsed=!s.collapsed;
+        try{
+          var keys=sections.filter(function(x){return x.collapsed;}).map(function(x){return x.title.textContent.trim();});
+          localStorage.setItem(CKEY, JSON.stringify(keys));
+        }catch(e){}
+        render();
+      });
+    });
+    if(search){ search.addEventListener('input', render); }
+    render();
+  })();
+
+  var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop'), sidebarClose=document.getElementById('sidebarClose');
+  function openNav(){ document.body.classList.add('nav-open'); document.body.style.overflow='hidden'; }
+  function closeNav(){ document.body.classList.remove('nav-open'); document.body.style.overflow=''; }
+  menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
+  backdrop.addEventListener('click', closeNav);
+  sidebarClose.addEventListener('click', closeNav);
+  document.querySelectorAll('.sidebar a').forEach(function(a){ a.addEventListener('click', closeNav); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeNav(); });
+
+  try{
+    var saved = localStorage.getItem('podschet-theme');
+    if(saved) document.documentElement.setAttribute('data-theme', saved);
+  }catch(e){}
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : (cur === 'light' ? null : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+    if(next){ document.documentElement.setAttribute('data-theme', next); } else { document.documentElement.removeAttribute('data-theme'); }
+    try{ localStorage.setItem('podschet-theme', next || ''); }catch(e){}
+  });
+
+
+  function calc(){
+    var n=Math.round(v('term')), d=deposit(v('init'),v('contrib'),v('rate')/1200,n,S.cap), it=d.total-d.principal;
+    T('r1L','Итоговая сумма через '+monthsText(n)); T('r1',F.rub(d.total));
+    T('s1',F.rub(d.principal)); T('s2',F.rub(it)); T('s3',F.rub(it/n));
+    bar(d.total>0 ? d.principal/d.total*100 : 100);
+  }
+  seg('cap');
+  field('init',0,50000000,'rub');
+  field('contrib',0,1000000,'rub');
+  field('rate',0.1,30,'pct');
+  field('term',3,120,'mon');
+  calc();
+})();
+</script>
+<script src="cookie-consent.js" defer></script>
+</body>
+</html>

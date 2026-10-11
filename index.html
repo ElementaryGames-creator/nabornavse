@@ -33,8 +33,9 @@
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow-wrap:anywhere;}
   .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
   .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
-    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;}
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;overscroll-behavior:contain;}
   body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open{position:fixed;left:0;right:0;overflow:hidden;}
   .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
   .sidebar-title:first-child{margin-top:0;}
   .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
@@ -46,7 +47,7 @@
   .sidebar-search::placeholder{color:var(--ink-faint);}
   .sidebar-search:focus{outline:none;border-color:var(--accent);}
   .sidebar-title{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
-  .sidebar-title::after{content:'\25BE';font-size:10px;color:var(--ink-faint);flex-shrink:0;}
+  .sidebar-title::after{content:'\25BE';font-size:16px;line-height:1;color:var(--ink-soft);flex-shrink:0;}
   .sidebar-title.collapsed::after{content:'\25B8';}
   .sidebar-item-hidden{display:none !important;}
   .sidebar-no-match{font-size:12.5px;color:var(--ink-faint);padding:.3rem .6rem;display:none;}
@@ -303,10 +304,14 @@
       while(el && !el.classList.contains('sidebar-title')){ items.push(el); el=el.nextElementSibling; }
       return {title:t, items:items, collapsed:false};
     });
-    var CKEY='nabor-sidebar-collapsed';
-    var saved={};
-    try{ (JSON.parse(localStorage.getItem(CKEY)||'[]')).forEach(function(k){ saved[k]=true; }); }catch(e){}
-    sections.forEach(function(s){ s.collapsed=!!saved[s.title.textContent.trim()]; });
+    var CKEY='nabor-sidebar-collapsed-v2';
+    var overrides={};
+    try{ overrides=JSON.parse(localStorage.getItem(CKEY)||'{}'); }catch(e){}
+    sections.forEach(function(s){
+      var key=s.title.textContent.trim();
+      var hasActive=s.items.some(function(it){ return it.classList && it.classList.contains('active'); });
+      s.collapsed = overrides.hasOwnProperty(key) ? !!overrides[key] : !hasActive;
+    });
     var search=document.getElementById('sidebarSearch');
     function query(){ return search ? search.value.trim().toLowerCase() : ''; }
     function render(){
@@ -332,10 +337,8 @@
       s.title.addEventListener('click', function(){
         if(query()) return;
         s.collapsed=!s.collapsed;
-        try{
-          var keys=sections.filter(function(x){return x.collapsed;}).map(function(x){return x.title.textContent.trim();});
-          localStorage.setItem(CKEY, JSON.stringify(keys));
-        }catch(e){}
+        overrides[s.title.textContent.trim()]=s.collapsed;
+        try{ localStorage.setItem(CKEY, JSON.stringify(overrides)); }catch(e){}
         render();
       });
     });
@@ -344,8 +347,17 @@
   })();
 
   var menuBtn=document.getElementById('menuBtn'), backdrop=document.getElementById('backdrop'), sidebarClose=document.getElementById('sidebarClose');
-  function openNav(){ document.body.classList.add('nav-open'); document.body.style.overflow='hidden'; }
-  function closeNav(){ document.body.classList.remove('nav-open'); document.body.style.overflow=''; }
+  var navScrollY=0;
+  function openNav(){
+    navScrollY=window.scrollY||window.pageYOffset||0;
+    document.body.style.top='-'+navScrollY+'px';
+    document.body.classList.add('nav-open');
+  }
+  function closeNav(){
+    document.body.classList.remove('nav-open');
+    document.body.style.top='';
+    window.scrollTo(0, navScrollY);
+  }
   menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
   backdrop.addEventListener('click', closeNav);
   sidebarClose.addEventListener('click', closeNav);

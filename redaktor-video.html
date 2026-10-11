@@ -39,7 +39,6 @@
     transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;overscroll-behavior:contain;}
   body.nav-open .sidebar{transform:translateX(0);}
   body.nav-open{position:fixed;left:0;right:0;overflow:hidden;}
-  body.nav-open{position:fixed;left:0;right:0;overflow:hidden;}
   .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
   .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
   .sidebar-title:first-child{margin-top:0;}
@@ -221,6 +220,53 @@
   .result-block{margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--line);}
   .result-video{width:100%;max-height:360px;object-fit:contain;border-radius:8px;background:#000;display:block;margin-bottom:.6rem;}
 
+
+/* ---- video editor v2 ---- */
+.panel.editor{grid-template-columns:1fr;}
+.panel.editor .inputs{border-right:none;}
+.panel.editor .results{border-top:1px solid var(--line);}
+.player-wrap{width:100%;height:240px;border-radius:8px;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;}
+.player-wrap video{display:block;max-width:100%;max-height:100%;}
+.trim-line{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;margin-bottom:.9rem;}
+.trim-line b{color:var(--ink);font-weight:600;}
+.mark-btns{display:flex;gap:.4rem;}
+.mark-btns button,.btn-ghost,.row-menu button{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:12px;padding:.4rem .7rem;border-radius:7px;cursor:pointer;font-family:var(--font-body);}
+.btn-ghost{width:100%;padding:.6rem;margin-top:.5rem;font-size:13px;border-style:dashed;background:var(--bg);}
+.mark-btns button:hover,.btn-ghost:hover,.row-menu button:hover{border-color:var(--accent);color:var(--accent);}
+.clip-row{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:.55rem;background:var(--bg);border:1px solid transparent;border-radius:10px;padding:.5rem .6rem;margin-bottom:.4rem;cursor:pointer;}
+.clip-row.sel{border-color:var(--accent);background:var(--accent-soft);}
+.clip-row.dragging{opacity:.45;}
+.clip-row.drop-target{box-shadow:0 0 0 2px var(--accent) inset;}
+.clip-row.err .clip-sum{color:#b8432c;}
+.grip{color:var(--ink-faint);cursor:grab;font-size:15px;line-height:1;user-select:none;}
+.clip-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.clip-sum{font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+.row-actions{display:flex;gap:2px;flex-shrink:0;}
+.rowBtn{border:none;background:transparent;color:var(--ink-faint);font-size:13px;cursor:pointer;padding:4px 7px;border-radius:6px;font-family:var(--font-body);}
+.rowBtn:hover{color:var(--ink);background:var(--surface);}
+.rowBtn:disabled{opacity:.3;cursor:default;}
+.row-menu{display:none;flex:0 0 100%;gap:.5rem;padding-top:.2rem;}
+.clip-row.menu-open .row-menu{display:flex;}
+.music-block{margin-top:.9rem;padding-top:.9rem;border-top:1px solid var(--line);}
+.music-card{background:var(--bg);border-radius:10px;padding:.6rem .7rem;}
+.music-row{display:flex;align-items:center;gap:.55rem;}
+.music-ctl{margin-top:.6rem;display:grid;gap:.5rem;}
+.vol{display:flex;align-items:center;gap:.6rem;font-size:12.5px;color:var(--ink-soft);}
+.vol input{flex:1;min-width:0;}
+.adv{margin-top:.7rem;}
+.adv summary{cursor:pointer;font-size:12.5px;color:var(--ink-soft);}
+.export-bar{position:sticky;bottom:0;z-index:30;display:flex;align-items:center;gap:.7rem;margin-top:.8rem;padding:.7rem .9rem calc(.7rem + env(safe-area-inset-bottom,0px));background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 -8px 24px -16px rgba(20,24,30,.25);}
+.exp-sum{flex:1;min-width:0;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
+.exp-set{position:relative;flex-shrink:0;}
+.exp-set summary{list-style:none;cursor:pointer;font-size:13px;color:var(--ink-soft);padding:.5rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);}
+.exp-set summary::-webkit-details-marker{display:none;}
+.exp-pop{position:absolute;right:0;bottom:calc(100% + .6rem);width:min(320px,86vw);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem;box-shadow:var(--shadow);}
+.export-bar .btn{width:auto;flex:0 0 auto;padding:.65rem 1.1rem;margin:0;}
+.exporting #editorBody{pointer-events:none;opacity:.55;}
+.exporting .exp-set{pointer-events:none;opacity:.5;}
+html,body{overflow-x:clip;}
+.clip-row.sel .clip-num{background:var(--surface);}
+@media (max-width:520px){ .exp-sum{font-size:12px;} .export-bar{gap:.5rem;padding-left:.7rem;padding-right:.7rem;} }
 </style>
 </head>
 <body>
@@ -234,15 +280,10 @@
   <a href="ipoteka-calculator.html">Ипотечный платёж</a>
   <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
   <a href="kreditny-kalkulyator.html">Кредитный калькулятор</a>
-  <a href="avtokredit-calculator.html">Автокредит</a>
   <span class="soon">Рефинансирование<small>скоро</small></span>
   <p class="sidebar-title">Вклады и накопления</p>
   <a href="vklad-protsenty.html">Вклад с капитализацией</a>
   <a href="nakopleniya-na-tsel.html">Накопления на цель</a>
-  <a href="vklad-calculator.html">Пополняемый вклад</a>
-  <a href="inflyatsiya-calculator.html">Калькулятор инфляции</a>
-  <a href="pensiya-calculator.html">Пенсия и финансовая независимость</a>
-  <a href="investitsii-calculator.html">Доходность инвестиций</a>
   <p class="sidebar-title">Налоги и работа</p>
   <a href="zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
   <p class="sidebar-title">Даты и проценты</p>
@@ -256,8 +297,6 @@
   <a href="konverter-temperatury.html">Универсальный конвертер температуры</a>
   <a href="konverter-dliny.html">Универсальный конвертер длины</a>
   <a href="konverter-materialov.html">Площадь в материалы для ремонта</a>
-  <a href="edinitsy-izmereniya.html">Вес, объём, площадь, скорость</a>
-  <a href="davlenie-energiya-dannye.html">Давление, энергия, данные</a>
   <span class="soon">PDF в JPG<small>скоро</small></span>
   <p class="sidebar-title">Видео</p>
   <a href="redaktor-video.html" class="active">Редактор видео</a>
@@ -282,49 +321,33 @@
       <p class="lede">Обрежьте, склейте несколько роликов по порядку и наложите музыку — всё прямо в браузере, без загрузки на сервер.</p>
     </header>
 
-    <div class="panel">
-      <div class="inputs">
-        <p class="panel-eyebrow">Ролики</p>
+    <div class="panel editor">
+      <div class="inputs" id="editorBody">
         <div class="dropzone" id="dropzone">
           <p><strong>Нажмите, чтобы выбрать видео</strong><br>или перетащите файлы сюда — можно сразу несколько</p>
-          <input type="file" id="fileInput" accept="video/*" multiple style="display:none;">
         </div>
-        <div id="clipList"></div>
-
-        <p class="panel-eyebrow" style="margin-top:1.4rem;">Музыка (необязательно)</p>
-        <div class="dropzone" id="musicDropzone">
-          <p><strong>Нажмите, чтобы выбрать аудио</strong><br>добавит фоновую дорожку поверх или вместо звука видео</p>
-          <input type="file" id="musicInput" accept="audio/*" style="display:none;">
+        <input type="file" id="fileInput" accept="video/*" multiple style="display:none;">
+        <input type="file" id="musicInput" accept="audio/*" style="display:none;">
+        <div id="workArea" style="display:none;">
+          <div class="player-wrap"><video id="mainPlayer" controls playsinline preload="metadata"></video></div>
+          <div class="trim-slider"><div class="trim-track"></div><div class="trim-range" id="trimRange"></div>
+            <input type="range" id="trimStart" min="0" max="1" step="0.1" value="0"><input type="range" id="trimEnd" min="0" max="1" step="0.1" value="1"></div>
+          <div class="trim-line"><span id="trimInfo">—</span><span class="mark-btns"><button type="button" id="markIn">⏺ Начало</button><button type="button" id="markOut">⏺ Конец</button></span></div>
+          <div id="clipList"></div>
+          <button type="button" class="btn-ghost" id="addMoreBtn">+ Ещё ролик</button>
+          <div class="music-block">
+            <button type="button" class="btn-ghost" id="addMusicBtn" style="margin-top:0;">♪ Добавить музыку</button>
+            <div id="musicCard"></div>
+          </div>
         </div>
-        <div id="musicCard"></div>
       </div>
-
-      <div class="results">
-        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Экспорт</p>
-        <div class="stat-row"><span class="k">Роликов добавлено</span><span class="v" id="statClips">0</span></div>
-        <div class="stat-row"><span class="k">Итоговая длительность</span><span class="v" id="statDur">0:00.0</span></div>
-        <div class="stat-row"><span class="k">Музыка</span><span class="v" id="statMusic">не добавлена</span></div>
-
-        <p class="label-row" style="margin-top:1.1rem;margin-bottom:.5rem;"><label>Качество экспорта</label></p>
-        <div class="seg" id="qualitySeg">
-          <button type="button" class="active" data-q="fast">Быстрее (720p)</button>
-          <button type="button" data-q="orig">Исходное</button>
-        </div>
-
-        <p class="label-row" style="margin-top:1rem;margin-bottom:.5rem;"><label>Ориентация итогового видео</label></p>
-        <div class="seg" id="orientSeg">
-          <button type="button" class="active" data-o="auto">Авто</button>
-          <button type="button" data-o="landscape">Альбомная</button>
-          <button type="button" data-o="portrait">Портретная</button>
-        </div>
-
-        <button class="btn" id="exportBtn" disabled style="margin-top:1rem;">Экспортировать видео</button>
+      <div class="results" id="resultsBox" style="display:none;">
+        <p class="panel-eyebrow" style="margin-bottom:.4rem;">Экспорт</p>
         <p class="status" id="status"></p>
         <div class="progress-wrap" id="progressWrap" style="display:none;">
           <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         </div>
         <div id="errorBox"></div>
-
         <div class="result-block" id="resultBlock" style="display:none;">
           <video class="result-video" id="resultVideo" controls></video>
           <p class="hint" id="resultInfo" style="margin:0 0 .6rem;"></p>
@@ -332,14 +355,32 @@
         </div>
       </div>
     </div>
-
+    <div class="export-bar" id="exportBar" style="display:none;">
+      <div class="exp-sum"><span id="statClips">0 роликов</span> · <span id="statDur">0:00.0</span> · <span id="statMusic">без музыки</span></div>
+      <details class="exp-set" id="expSet"><summary>⚙ Настройки</summary>
+        <div class="exp-pop">
+          <p class="label-row"><label>Качество экспорта</label></p>
+          <div class="seg" id="qualitySeg">
+            <button type="button" class="active" data-q="fast">Быстрее (720p)</button>
+            <button type="button" data-q="orig">Исходное</button>
+          </div>
+          <p class="label-row"><label>Ориентация итогового видео</label></p>
+          <div class="seg" id="orientSeg" style="margin-bottom:0;">
+            <button type="button" class="active" data-o="auto">Авто</button>
+            <button type="button" data-o="landscape">Альбомная</button>
+            <button type="button" data-o="portrait">Портретная</button>
+          </div>
+        </div>
+      </details>
+      <button class="btn" id="exportBtn" disabled>Экспортировать</button>
+    </div>
     <article>
       <h2>Как это работает</h2>
-      <p>Видео обрабатывается <strong>прямо в браузере</strong> — ролики не загружаются ни на какой сервер. За обрезку, склейку и наложение музыки отвечает движок FFmpeg, собранный в WebAssembly; при первом экспорте он подгружается (около 25–30 МБ), поэтому самый первый запуск может занять чуть больше времени.</p>
+      <p>Видео обрабатывается <strong>прямо в браузере</strong> — ролики не загружаются ни на какой сервер. За обрезку, склейку и наложение музыки отвечает движок FFmpeg, собранный в WebAssembly; он подгружается (около 25–30 МБ) в фоне после добавления первого ролика, поэтому самый первый экспорт может занять чуть больше времени.</p>
       <h3>Обрезка, поворот и порядок роликов</h3>
-      <p>У каждого ролика — свой ползунок с двумя бегунками: начало и конец. Можно тянуть бегунки или нажать «Начало сюда» / «Конец сюда», чтобы взять текущее положение плеера. Стрелками ▲▼ ролики переставляются местами — итоговое видео склеивается именно в этом порядке. Кнопка <strong>⟳</strong> поворачивает ролик на 90° по кругу (0° → 90° → 180° → 270°) — пригодится, если какой-то ролик снят боком. Ниже, в блоке «Экспорт», можно выбрать ориентацию итогового видео: альбомную, портретную или автоматически по первому ролику.</p>
+      <p>Выберите ролик в списке — он откроется в плеере сверху. Двумя бегунками под плеером задайте начало и конец, либо поставьте плеер на нужный кадр и нажмите «Начало» или «Конец». Порядок меняется перетаскиванием за значок ⠿ или стрелками ▲▼, итоговое видео склеивается именно в этом порядке. Поворот на 90° и удаление ролика — в меню «⋯». Качество и ориентация итогового видео (альбомная, портретная или автоматически по первому ролику) настраиваются в «Настройках» рядом с кнопкой экспорта.</p>
       <h3>Музыка</h3>
-      <p>Можно добавить одну фоновую дорожку и выбрать: <strong>смешать</strong> её со звуком видео (с регулировкой громкости) или <strong>полностью заменить</strong> звук видео музыкой. Ползунком можно выбрать, какой именно фрагмент дорожки использовать (например, пропустить тихое вступление), а полем «Фрагмент начнётся на видео с» — в какой момент ролика он зазвучит. Если выбранный фрагмент короче оставшейся части видео, его можно зациклить, чтобы музыки хватило до конца.</p>
+      <p>Кнопка «Добавить музыку» появляется после первого ролика. По умолчанию дорожка смешивается со звуком видео (громкость регулируется); снимите галочку «Оставить звук видео», чтобы звук был только музыкальный. В блоке «Дополнительно» можно выбрать фрагмент дорожки, момент его старта на видео и зациклить его, если он короче видео.</p>
       <p class="disclaimer">Обработка идёт на вашем устройстве, поэтому скорость и доступная память зависят от браузера и мощности компьютера или телефона. Для длинных или очень тяжёлых роликов экспорт может занять продолжительное время или не хватить памяти — лучше всего инструмент работает в последних версиях Chrome, Edge и Safari на компьютере. Если какой-то из роликов совсем без звука, экспорт с музыкой может завершиться ошибкой — в этом случае попробуйте убрать такой ролик или смешать его с видео, где звук есть.</p>
     </article>
 
@@ -430,7 +471,11 @@
 
 
   var dropzone=document.getElementById('dropzone'), fileInput=document.getElementById('fileInput'), clipList=document.getElementById('clipList');
-  var musicDropzone=document.getElementById('musicDropzone'), musicInput=document.getElementById('musicInput'), musicCard=document.getElementById('musicCard');
+  var musicInput=document.getElementById('musicInput'), musicCard=document.getElementById('musicCard');
+  var workArea=document.getElementById('workArea'), mainPlayer=document.getElementById('mainPlayer'), exportBar=document.getElementById('exportBar');
+  var trimStartEl=document.getElementById('trimStart'), trimEndEl=document.getElementById('trimEnd'), trimRangeEl=document.getElementById('trimRange'), trimInfo=document.getElementById('trimInfo');
+  var markIn=document.getElementById('markIn'), markOut=document.getElementById('markOut'), addMoreBtn=document.getElementById('addMoreBtn'), addMusicBtn=document.getElementById('addMusicBtn');
+  var resultsBox=document.getElementById('resultsBox'), inputsBox=document.getElementById('editorBody'), orientSeg=document.getElementById('orientSeg');
   var statClips=document.getElementById('statClips'), statDur=document.getElementById('statDur'), statMusic=document.getElementById('statMusic');
   var qualitySeg=document.getElementById('qualitySeg');
   var exportBtn=document.getElementById('exportBtn'), status=document.getElementById('status');
@@ -478,258 +523,229 @@
 
   // ---------- video clips ----------
 
+  var selClip=null, autoSel=true, dragFrom=-1, ffPreloaded=false;
+  function plural(n,a,b,c){ var m=n%10, k=n%100; return (m===1&&k!==11)?a:((m>=2&&m<=4&&(k<10||k>=20))?b:c); }
+  function minGap(c){ return Math.min(0.2, c.duration/2); }
+  function clipSummary(c){ return fmtTime(c.start)+'–'+fmtTime(c.end)+' · '+fmtTime(Math.max(0,c.end-c.start)); }
+
   dropzone.addEventListener('click', function(){ fileInput.click(); });
-  ['dragover','dragenter'].forEach(function(ev){ dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.add('drag'); }); });
-  ['dragleave','drop'].forEach(function(ev){ dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.remove('drag'); }); });
-  dropzone.addEventListener('drop', function(e){ addVideoFiles(e.dataTransfer.files); });
+  addMoreBtn.addEventListener('click', function(){ fileInput.click(); });
+  addMusicBtn.addEventListener('click', function(){ musicInput.click(); });
   fileInput.addEventListener('change', function(){ addVideoFiles(fileInput.files); fileInput.value=''; });
+  musicInput.addEventListener('change', function(){ if(musicInput.files[0]) addMusicFile(musicInput.files[0]); musicInput.value=''; });
+  ['dragover','dragenter'].forEach(function(ev){ inputsBox.addEventListener(ev, function(e){ if(dragFrom>=0) return; e.preventDefault(); dropzone.classList.add('drag'); }); });
+  ['dragleave','drop'].forEach(function(ev){ inputsBox.addEventListener(ev, function(e){ if(dragFrom>=0) return; e.preventDefault(); dropzone.classList.remove('drag'); }); });
+  inputsBox.addEventListener('drop', function(e){
+    if(dragFrom>=0 || !e.dataTransfer || !e.dataTransfer.files.length) return;
+    var vids=[], aud=null;
+    Array.prototype.forEach.call(e.dataTransfer.files, function(f){
+      if(/^audio\//.test(f.type) || /\.(mp3|wav|m4a|aac|ogg|flac|wma)$/i.test(f.name)) aud=f; else vids.push(f);
+    });
+    if(vids.length) addVideoFiles(vids);
+    if(aud && clips.length) addMusicFile(aud);
+  });
 
   function addVideoFiles(list){
     Array.prototype.forEach.call(list, function(file){
       if(!/^video\//.test(file.type) && !/\.(mp4|mov|webm|mkv|avi|m4v|3gp)$/i.test(file.name)) return;
-      var url=URL.createObjectURL(file);
-      clips.push({file:file, url:url, name:file.name, duration:null, w:null, h:null, start:0, end:0, size:file.size, rotation:0});
-      renderClips();
+      var clip={file:file, url:URL.createObjectURL(file), name:file.name, duration:null, w:null, h:null, start:0, end:0, size:file.size, rotation:0, error:false};
+      clips.push(clip); readMeta(clip);
     });
+    renderClips(); updateStats();
   }
-
-  function updateTrimVisual(card, clip){
-    var dur=clip.duration||1;
-    var leftPct=(clip.start/dur)*100, rightPct=(clip.end/dur)*100;
-    var rangeEl=card.querySelector('.trim-range');
-    rangeEl.style.left=leftPct+'%';
-    rangeEl.style.width=Math.max(0,rightPct-leftPct)+'%';
-    card.querySelector('.startLabel').textContent=fmtTime(clip.start);
-    card.querySelector('.endLabel').textContent=fmtTime(clip.end);
-    card.querySelector('.durLabel').textContent=fmtTime(Math.max(0,clip.end-clip.start));
+  // metadata is read with a throw-away element, so the page keeps only one real player
+  function readMeta(clip){
+    var v=document.createElement('video'); v.preload='metadata'; v.muted=true;
+    v.onloadedmetadata=function(){
+      clip.duration=v.duration; clip.w=v.videoWidth; clip.h=v.videoHeight; clip.end=v.duration;
+      v.removeAttribute('src'); try{ v.load(); }catch(e){}
+      if(clips.indexOf(clip)<0) return;
+      if(!selClip || (autoSel && clips.indexOf(clip)<clips.indexOf(selClip))) selectClip(clip);
+      renderClips(); updateStats(); preloadFFmpeg();
+    };
+    v.onerror=function(){ clip.error=true; renderClips(); updateStats(); };
+    v.src=clip.url;
+  }
+  // the engine (~25-30 MB) is fetched in the background after the first clip, except on slow / data-saver connections
+  function preloadFFmpeg(){
+    if(ffPreloaded) return; ffPreloaded=true;
+    var cn=navigator.connection||{};
+    if(cn.saveData || /^(slow-2g|2g|3g)$/.test(cn.effectiveType||'')) return;
+    (window.requestIdleCallback || function(f){ setTimeout(f,1200); })(function(){
+      try{ ensureFFmpeg().catch(function(){ ffmpegLoading=null; }); }catch(e){}
+    });
   }
 
   function applyRotationPreview(videoEl, clip){
     var deg=clip.rotation||0;
-    if(!deg){
-      videoEl.style.transform='';
-      videoEl.style.maxWidth='100%'; videoEl.style.maxHeight='100%';
-      videoEl.style.width=''; videoEl.style.height='';
-      return;
-    }
-    if(deg===90||deg===270){
-      videoEl.style.width='auto'; videoEl.style.height='100%';
-      videoEl.style.maxWidth='none'; videoEl.style.maxHeight='170px';
-    } else {
-      videoEl.style.width=''; videoEl.style.height='';
-      videoEl.style.maxWidth='100%'; videoEl.style.maxHeight='100%';
-    }
-    videoEl.style.transform='rotate('+deg+'deg)';
+    videoEl.style.width=''; videoEl.style.height=''; videoEl.style.maxWidth='100%'; videoEl.style.maxHeight='100%';
+    videoEl.style.transform=deg ? 'rotate('+deg+'deg)' : '';
+    if(deg===90||deg===270){ videoEl.style.width='auto'; videoEl.style.height='100%'; videoEl.style.maxWidth='none'; videoEl.style.maxHeight='240px'; }
+  }
+
+  function selectClip(clip){
+    selClip=clip;
+    if(!clip){ mainPlayer.removeAttribute('src'); mainPlayer.dataset.url=''; try{ mainPlayer.load(); }catch(e){} return; }
+    var seek=function(){ try{ mainPlayer.currentTime=clip.start; }catch(e){} };
+    if(mainPlayer.dataset.url!==clip.url){ mainPlayer.dataset.url=clip.url; mainPlayer.src=clip.url; mainPlayer.addEventListener('loadedmetadata', seek, {once:true}); } else seek();
+    applyRotationPreview(mainPlayer, clip);
+    trimStartEl.max=clip.duration; trimEndEl.max=clip.duration; trimStartEl.value=clip.start; trimEndEl.value=clip.end;
+    updateTrimUI();
+  }
+  function updateTrimUI(){
+    var c=selClip; if(!c || c.duration===null) return;
+    var d=c.duration||1;
+    trimRangeEl.style.left=(c.start/d*100)+'%'; trimRangeEl.style.width=Math.max(0,(c.end-c.start)/d*100)+'%';
+    trimInfo.innerHTML='<b>'+fmtTime(c.start)+'</b> — <b>'+fmtTime(c.end)+'</b> · '+fmtTime(Math.max(0,c.end-c.start));
+    var sum=clipList.querySelector('.clip-row.sel .clip-sum'); if(sum) sum.textContent=clipSummary(c)+(c.rotation?' · ⟳ '+c.rotation+'°':'');
+  }
+  trimStartEl.addEventListener('input', function(){
+    var c=selClip; if(!c) return; var v=parseFloat(trimStartEl.value);
+    if(v>c.end-minGap(c)) v=Math.max(0,c.end-minGap(c));
+    c.start=v; trimStartEl.value=v; try{ mainPlayer.currentTime=v; }catch(e){} updateTrimUI(); updateStats();
+  });
+  trimEndEl.addEventListener('input', function(){
+    var c=selClip; if(!c) return; var v=parseFloat(trimEndEl.value);
+    if(v<c.start+minGap(c)) v=Math.min(c.duration,c.start+minGap(c));
+    c.end=v; trimEndEl.value=v; try{ mainPlayer.currentTime=v; }catch(e){} updateTrimUI(); updateStats();
+  });
+  markIn.addEventListener('click', function(){
+    var c=selClip; if(!c) return; var v=Math.max(0,Math.min(mainPlayer.currentTime,c.end-minGap(c)));
+    c.start=v; trimStartEl.value=v; updateTrimUI(); updateStats();
+  });
+  markOut.addEventListener('click', function(){
+    var c=selClip; if(!c) return; var v=Math.min(c.duration,Math.max(mainPlayer.currentTime,c.start+minGap(c)));
+    c.end=v; trimEndEl.value=v; updateTrimUI(); updateStats();
+  });
+
+  function move(from,to){ var t=clips.splice(from,1)[0]; clips.splice(to,0,t); renderClips(); updateStats(); }
+  function removeClip(i){
+    var c=clips[i]; try{ URL.revokeObjectURL(c.url); }catch(e){}
+    clips.splice(i,1);
+    if(c===selClip){ var n=clips[i]||clips[i-1]||null; selectClip(n && n.duration!==null && !n.error ? n : null); }
+    if(!clips.length) autoSel=true;
+    renderClips(); updateStats();
   }
 
   function renderClips(){
+    workArea.style.display = clips.length ? '' : 'none';
+    dropzone.style.display = clips.length ? 'none' : '';
+    exportBar.style.display = clips.length ? '' : 'none';
     clipList.innerHTML = clips.map(function(c,i){
-      if(c.duration===null){
-        return '<div class="clip-card" data-i="'+i+'">'+
-          '<div class="clip-head"><span class="clip-num">'+(i+1)+'</span><span class="clip-name">'+escapeHtml(c.name)+'</span>'+
-          '<div class="clip-actions"><button class="clipRemove" type="button" title="Убрать">✕</button></div></div>'+
-          '<video class="clip-video clip-video-el" src="'+c.url+'" preload="metadata" muted></video>'+
-          '<p class="hint">Загрузка данных ролика…</p></div>';
-      }
-      var dur=c.duration;
-      var rotLabel=(c.rotation||0)+'°';
-      return '<div class="clip-card" data-i="'+i+'">'+
-        '<div class="clip-head"><span class="clip-num">'+(i+1)+'</span><span class="clip-name">'+escapeHtml(c.name)+'</span>'+
-        '<div class="clip-actions">'+
-          '<button class="clipUp" type="button" title="Выше"'+(i===0?' disabled':'')+'>▲</button>'+
-          '<button class="clipDown" type="button" title="Ниже"'+(i===clips.length-1?' disabled':'')+'>▼</button>'+
-          '<button class="clipRotate" type="button" title="Повернуть на 90°">⟳ '+rotLabel+'</button>'+
-          '<button class="clipRemove" type="button" title="Убрать">✕</button>'+
-        '</div></div>'+
-        '<div class="clip-video-wrap"><video class="clip-video-rot clip-video-el" src="'+c.url+'" preload="metadata" controls></video></div>'+
-        '<div class="trim-slider">'+
-          '<div class="trim-track"></div><div class="trim-range"></div>'+
-          '<input type="range" class="trimStart" min="0" max="'+dur+'" step="0.1" value="'+c.start+'">'+
-          '<input type="range" class="trimEnd" min="0" max="'+dur+'" step="0.1" value="'+c.end+'">'+
-        '</div>'+
-        '<div class="trim-nums"><span>Начало: <b class="startLabel"></b></span><span>Длина: <b class="durLabel"></b></span><span>Конец: <b class="endLabel"></b></span></div>'+
-        '<div class="clip-setbtns"><button class="setStart" type="button">⏺ Начало сюда</button><button class="setEnd" type="button">⏺ Конец сюда</button></div>'+
-      '</div>';
+      var head='<span class="clip-num">'+(i+1)+'</span>';
+      if(c.error) return '<div class="clip-row err" data-i="'+i+'">'+head+'<span class="clip-main"><span class="clip-name">'+escapeHtml(c.name)+'</span><span class="clip-sum">не удалось прочитать файл</span></span><button class="rowBtn clipRemove" type="button" title="Убрать">✕</button></div>';
+      if(c.duration===null) return '<div class="clip-row" data-i="'+i+'">'+head+'<span class="clip-main"><span class="clip-name">'+escapeHtml(c.name)+'</span><span class="clip-sum">загрузка…</span></span></div>';
+      return '<div class="clip-row'+(c===selClip?' sel':'')+'" data-i="'+i+'" draggable="true">'+
+        '<span class="grip" title="Перетащите, чтобы поменять порядок">⠿</span>'+head+
+        '<span class="clip-main"><span class="clip-name">'+escapeHtml(c.name)+'</span><span class="clip-sum">'+clipSummary(c)+(c.rotation?' · ⟳ '+c.rotation+'°':'')+'</span></span>'+
+        '<span class="row-actions"><button class="rowBtn clipUp" type="button" title="Выше"'+(i===0?' disabled':'')+'>▲</button>'+
+        '<button class="rowBtn clipDown" type="button" title="Ниже"'+(i===clips.length-1?' disabled':'')+'>▼</button>'+
+        '<button class="rowBtn clipMore" type="button" title="Ещё">⋯</button></span>'+
+        '<div class="row-menu"><button class="clipRotate" type="button">⟳ Повернуть на 90° (сейчас '+(c.rotation||0)+'°)</button><button class="clipRemove" type="button">✕ Убрать</button></div></div>';
     }).join('');
-
-    Array.prototype.forEach.call(clipList.querySelectorAll('.clip-card'), function(card){
-      var i=parseInt(card.dataset.i,10);
-      var clip=clips[i];
-      var videoEl=card.querySelector('.clip-video-el');
-      if(clip.duration===null){
-        videoEl.addEventListener('loadedmetadata', function(){
-          clip.duration=videoEl.duration; clip.w=videoEl.videoWidth; clip.h=videoEl.videoHeight; clip.end=videoEl.duration;
-          renderClips(); updateStats();
-        }, {once:true});
-      } else {
-        updateTrimVisual(card, clip);
-        applyRotationPreview(videoEl, clip);
-        var startInput=card.querySelector('.trimStart'), endInput=card.querySelector('.trimEnd');
-        var minGap=Math.min(0.2, clip.duration/2);
-        startInput.addEventListener('input', function(){
-          var v=parseFloat(startInput.value);
-          if(v>clip.end-minGap) v=Math.max(0, clip.end-minGap);
-          clip.start=v; startInput.value=v;
-          try{ videoEl.currentTime=v; }catch(e){}
-          updateTrimVisual(card, clip); updateStats();
-        });
-        endInput.addEventListener('input', function(){
-          var v=parseFloat(endInput.value);
-          if(v<clip.start+minGap) v=Math.min(clip.duration, clip.start+minGap);
-          clip.end=v; endInput.value=v;
-          try{ videoEl.currentTime=v; }catch(e){}
-          updateTrimVisual(card, clip); updateStats();
-        });
-        card.querySelector('.setStart').addEventListener('click', function(){
-          var v=Math.max(0, Math.min(videoEl.currentTime, clip.end-minGap));
-          clip.start=v; startInput.value=v; updateTrimVisual(card, clip); updateStats();
-        });
-        card.querySelector('.setEnd').addEventListener('click', function(){
-          var v=Math.min(clip.duration, Math.max(videoEl.currentTime, clip.start+minGap));
-          clip.end=v; endInput.value=v; updateTrimVisual(card, clip); updateStats();
-        });
-        var upBtn=card.querySelector('.clipUp');
-        if(upBtn) upBtn.addEventListener('click', function(){ if(i>0){ var t=clips[i-1]; clips[i-1]=clips[i]; clips[i]=t; renderClips(); updateStats(); } });
-        var downBtn=card.querySelector('.clipDown');
-        if(downBtn) downBtn.addEventListener('click', function(){ if(i<clips.length-1){ var t=clips[i+1]; clips[i+1]=clips[i]; clips[i]=t; renderClips(); updateStats(); } });
-        var rotateBtn=card.querySelector('.clipRotate');
-        if(rotateBtn) rotateBtn.addEventListener('click', function(){
-          clip.rotation=((clip.rotation||0)+90)%360;
-          renderClips();
-        });
-      }
-      card.querySelector('.clipRemove').addEventListener('click', function(){
-        try{ URL.revokeObjectURL(clip.url); }catch(e){}
-        clips.splice(i,1); renderClips(); updateStats();
-      });
-    });
   }
+  clipList.addEventListener('click', function(e){
+    var row=e.target.closest('.clip-row'); if(!row) return;
+    var i=parseInt(row.dataset.i,10), c=clips[i]; if(!c) return;
+    if(e.target.closest('.clipUp')){ if(i>0) move(i,i-1); return; }
+    if(e.target.closest('.clipDown')){ if(i<clips.length-1) move(i,i+1); return; }
+    if(e.target.closest('.clipMore')){ row.classList.toggle('menu-open'); return; }
+    if(e.target.closest('.clipRotate')){ c.rotation=((c.rotation||0)+90)%360; if(c===selClip) applyRotationPreview(mainPlayer,c); renderClips(); return; }
+    if(e.target.closest('.clipRemove')){ removeClip(i); return; }
+    if(c.duration!==null && !c.error){ autoSel=false; selectClip(c); renderClips(); }
+  });
+  clipList.addEventListener('dragstart', function(e){
+    var row=e.target.closest('.clip-row'); if(!row || row.getAttribute('draggable')!=='true') return;
+    dragFrom=parseInt(row.dataset.i,10); e.dataTransfer.effectAllowed='move';
+    try{ e.dataTransfer.setData('text/plain', String(dragFrom)); }catch(x){}
+    row.classList.add('dragging');
+  });
+  clipList.addEventListener('dragover', function(e){
+    if(dragFrom<0) return; e.preventDefault();
+    Array.prototype.forEach.call(clipList.querySelectorAll('.drop-target'), function(r){ r.classList.remove('drop-target'); });
+    var row=e.target.closest('.clip-row'); if(row) row.classList.add('drop-target');
+  });
+  clipList.addEventListener('drop', function(e){
+    if(dragFrom<0) return; e.preventDefault();
+    var row=e.target.closest('.clip-row'), to=row ? parseInt(row.dataset.i,10) : -1, from=dragFrom; dragFrom=-1;
+    if(to>=0 && to!==from) move(from,to); else renderClips();
+  });
+  clipList.addEventListener('dragend', function(){ dragFrom=-1; renderClips(); });
 
   // ---------- music ----------
-
-  musicDropzone.addEventListener('click', function(){ musicInput.click(); });
-  ['dragover','dragenter'].forEach(function(ev){ musicDropzone.addEventListener(ev, function(e){ e.preventDefault(); musicDropzone.classList.add('drag'); }); });
-  ['dragleave','drop'].forEach(function(ev){ musicDropzone.addEventListener(ev, function(e){ e.preventDefault(); musicDropzone.classList.remove('drag'); }); });
-  musicDropzone.addEventListener('drop', function(e){ if(e.dataTransfer.files[0]) addMusicFile(e.dataTransfer.files[0]); });
-  musicInput.addEventListener('change', function(){ if(musicInput.files[0]) addMusicFile(musicInput.files[0]); musicInput.value=''; });
 
   function addMusicFile(file){
     if(!/^audio\//.test(file.type) && !/\.(mp3|wav|m4a|aac|ogg|flac|wma)$/i.test(file.name)) return;
     if(music){ try{ URL.revokeObjectURL(music.url); }catch(e){} }
-    var url=URL.createObjectURL(file);
-    music={file:file, url:url, name:file.name, duration:null, volume:100, mode:'mix', loop:true, size:file.size, trimStart:0, trimEnd:null, offset:0};
-    renderMusic(); updateStats();
+    var m={file:file, url:URL.createObjectURL(file), name:file.name, duration:null, volume:100, mode:'mix', loop:true, size:file.size, trimStart:0, trimEnd:null, offset:0, error:false};
+    music=m; renderMusic(); updateStats();
+    var a=new Audio(); a.preload='metadata';
+    a.onloadedmetadata=function(){ if(music!==m) return; m.duration=a.duration; m.trimStart=0; m.trimEnd=a.duration; a.removeAttribute('src'); renderMusic(); updateStats(); };
+    a.onerror=function(){ if(music!==m) return; m.error=true; renderMusic(); updateStats(); };
+    a.src=m.url;
   }
+  function removeMusic(){ if(music){ try{ URL.revokeObjectURL(music.url); }catch(e){} } music=null; renderMusic(); updateStats(); }
 
   function renderMusic(){
+    addMusicBtn.style.display = music ? 'none' : '';
     if(!music){ musicCard.innerHTML=''; return; }
-    if(music.duration===null){
-      musicCard.innerHTML='<div class="clip-card"><div class="clip-head"><span class="clip-name">'+escapeHtml(music.name)+'</span>'+
-        '<div class="clip-actions"><button class="musicRemove" type="button" title="Убрать">✕</button></div></div>'+
-        '<audio src="'+music.url+'" preload="metadata" style="width:100%;"></audio><p class="hint">Загрузка…</p></div>';
-      musicCard.querySelector('audio').addEventListener('loadedmetadata', function(e){
-        music.duration=e.target.duration; music.trimStart=0; music.trimEnd=music.duration;
-        renderMusic(); updateStats();
-      }, {once:true});
-      musicCard.querySelector('.musicRemove').addEventListener('click', function(){ try{ URL.revokeObjectURL(music.url); }catch(e){} music=null; renderMusic(); updateStats(); });
+    if(music.error || music.duration===null){
+      musicCard.innerHTML='<div class="music-card"><div class="music-row"><span class="clip-main"><span class="clip-name">♪ '+escapeHtml(music.name)+'</span><span class="clip-sum">'+(music.error?'не удалось прочитать файл':'загрузка…')+'</span></span><button class="rowBtn musicRemove" type="button" title="Убрать">✕</button></div></div>';
+      musicCard.querySelector('.musicRemove').addEventListener('click', removeMusic);
       return;
     }
-    var dur=music.duration;
+    var dur=music.duration, offsetMax=Math.max(0,getTotalDur());
     if(music.trimEnd==null || music.trimEnd>dur) music.trimEnd=dur;
-    var totalDur=getTotalDur();
-    var offsetMax=Math.max(0, totalDur);
     if(music.offset>offsetMax) music.offset=offsetMax;
-    musicCard.innerHTML =
-      '<div class="clip-card">'+
-      '<div class="clip-head"><span class="clip-name">'+escapeHtml(music.name)+'</span>'+
-      '<div class="clip-actions"><button class="musicRemove" type="button" title="Убрать">✕</button></div></div>'+
-      '<audio src="'+music.url+'" preload="metadata" controls style="width:100%;margin-bottom:.6rem;"></audio>'+
-      '<div class="field" style="padding:.6rem .7rem;">'+
-        '<div class="field-top"><label>Громкость музыки</label><span class="val-input" id="musicVolLabel">'+music.volume+'%</span></div>'+
-        '<input type="range" id="musicVol" min="0" max="200" step="5" value="'+music.volume+'">'+
-      '</div>'+
-      '<div class="seg" id="musicModeSeg" style="margin-top:.6rem;">'+
-        '<button type="button" data-mode="mix" class="'+(music.mode==='mix'?'active':'')+'">Смешать со звуком</button>'+
-        '<button type="button" data-mode="replace" class="'+(music.mode==='replace'?'active':'')+'">Заменить звук</button>'+
-      '</div>'+
-      '<p class="hint" style="margin:.8rem 0 .3rem;">Какой фрагмент дорожки использовать</p>'+
-      '<div class="trim-slider">'+
-        '<div class="trim-track"></div><div class="trim-range" id="musicTrimRangeEl"></div>'+
-        '<input type="range" class="musicTrimStart" min="0" max="'+dur+'" step="0.1" value="'+music.trimStart+'">'+
-        '<input type="range" class="musicTrimEnd" min="0" max="'+dur+'" step="0.1" value="'+music.trimEnd+'">'+
-      '</div>'+
-      '<div class="trim-nums"><span>Начало: <b class="mStartLabel"></b></span><span>Длина: <b class="mDurLabel"></b></span><span>Конец: <b class="mEndLabel"></b></span></div>'+
-      '<div class="clip-setbtns"><button class="musicSetStart" type="button">⏺ Начало сюда</button><button class="musicSetEnd" type="button">⏺ Конец сюда</button></div>'+
-      '<div class="field" style="padding:.6rem .7rem;margin-top:.7rem;">'+
-        '<div class="field-top"><label>Фрагмент начнётся на видео с</label><span class="val-input" id="musicOffsetLabel">'+fmtTime(music.offset)+'</span></div>'+
-        '<input type="range" id="musicOffset" min="0" max="'+offsetMax+'" step="0.1" value="'+music.offset+'">'+
-      '</div>'+
-      '<div class="checkbox-row" style="margin-top:.6rem;">'+
-        '<input type="checkbox" id="musicLoop"'+(music.loop?' checked':'')+'>'+
-        '<label for="musicLoop">Зациклить фрагмент, если он короче видео</label>'+
-      '</div>'+
-      '</div>';
-    musicCard.querySelector('.musicRemove').addEventListener('click', function(){ try{ URL.revokeObjectURL(music.url); }catch(e){} music=null; renderMusic(); updateStats(); });
-    var volInput=musicCard.querySelector('#musicVol'), volLabel=musicCard.querySelector('#musicVolLabel');
-    volInput.addEventListener('input', function(){ music.volume=parseInt(volInput.value,10); volLabel.textContent=music.volume+'%'; });
-    musicCard.querySelector('#musicModeSeg').addEventListener('click', function(e){
-      var btn=e.target.closest('button'); if(!btn) return;
-      musicCard.querySelectorAll('#musicModeSeg button').forEach(function(b){b.classList.remove('active');});
-      btn.classList.add('active'); music.mode=btn.dataset.mode; updateStats();
-    });
-    musicCard.querySelector('#musicLoop').addEventListener('change', function(e){ music.loop=e.target.checked; });
-
-    var audioEl=musicCard.querySelector('audio');
-    var mStartInput=musicCard.querySelector('.musicTrimStart'), mEndInput=musicCard.querySelector('.musicTrimEnd');
-    var mMinGap=Math.min(0.2, dur/2);
-    function updateMusicTrimVisual(){
-      var leftPct=(music.trimStart/dur)*100, rightPct=(music.trimEnd/dur)*100;
-      var rangeEl=musicCard.querySelector('#musicTrimRangeEl');
-      rangeEl.style.left=leftPct+'%';
-      rangeEl.style.width=Math.max(0,rightPct-leftPct)+'%';
-      musicCard.querySelector('.mStartLabel').textContent=fmtTime(music.trimStart);
-      musicCard.querySelector('.mEndLabel').textContent=fmtTime(music.trimEnd);
-      musicCard.querySelector('.mDurLabel').textContent=fmtTime(Math.max(0,music.trimEnd-music.trimStart));
+    musicCard.innerHTML = `<div class="music-card">
+      <div class="music-row"><span class="clip-main"><span class="clip-name">♪ ${escapeHtml(music.name)}</span><span class="clip-sum" id="musicSum"></span></span><button class="rowBtn musicRemove" type="button" title="Убрать">✕</button></div>
+      <div class="music-ctl">
+        <div class="checkbox-row" style="margin:0;"><input type="checkbox" id="keepAudio"${music.mode==='mix'?' checked':''}><label for="keepAudio">Оставить звук видео</label></div>
+        <div class="vol"><label for="musicVol">Громкость</label><input type="range" id="musicVol" min="0" max="200" step="5" value="${music.volume}"><span id="musicVolLabel">${music.volume}%</span></div>
+      </div>
+      <details class="adv"><summary>Дополнительно: фрагмент, старт, зацикливание</summary>
+        <audio src="${music.url}" preload="metadata" controls style="width:100%;margin:.6rem 0;"></audio>
+        <p class="hint" style="margin:.2rem 0 .3rem;">Какой фрагмент дорожки использовать</p>
+        <div class="trim-slider"><div class="trim-track"></div><div class="trim-range" id="musicTrimRangeEl"></div>
+          <input type="range" class="musicTrimStart" min="0" max="${dur}" step="0.1" value="${music.trimStart}">
+          <input type="range" class="musicTrimEnd" min="0" max="${dur}" step="0.1" value="${music.trimEnd}"></div>
+        <div class="trim-nums"><span>Начало: <b class="mStartLabel"></b></span><span>Длина: <b class="mDurLabel"></b></span><span>Конец: <b class="mEndLabel"></b></span></div>
+        <div class="clip-setbtns"><button class="musicSetStart" type="button">⏺ Начало сюда</button><button class="musicSetEnd" type="button">⏺ Конец сюда</button></div>
+        <div class="field" style="padding:.6rem .7rem;margin-top:.7rem;"><div class="field-top"><label>Фрагмент начнётся на видео с</label><span class="val-input" id="musicOffsetLabel">${fmtTime(music.offset)}</span></div>
+          <input type="range" id="musicOffset" min="0" max="${offsetMax}" step="0.1" value="${music.offset}"></div>
+        <div class="checkbox-row" style="margin-top:.6rem;"><input type="checkbox" id="musicLoop"${music.loop?' checked':''}><label for="musicLoop">Зациклить фрагмент, если он короче видео</label></div>
+      </details></div>`;
+    var q=function(s){ return musicCard.querySelector(s); };
+    musicCard.querySelector('.musicRemove').addEventListener('click', removeMusic);
+    q('#keepAudio').addEventListener('change', function(e){ music.mode=e.target.checked?'mix':'replace'; updateStats(); });
+    var volInput=q('#musicVol'), volLabel=q('#musicVolLabel');
+    var audioEl=q('audio'), mStart=q('.musicTrimStart'), mEnd=q('.musicTrimEnd'), mMinGap=Math.min(0.2,dur/2);
+    function paintMusic(){
+      var l=(music.trimStart/dur)*100, r=(music.trimEnd/dur)*100, el=q('#musicTrimRangeEl');
+      el.style.left=l+'%'; el.style.width=Math.max(0,r-l)+'%';
+      q('.mStartLabel').textContent=fmtTime(music.trimStart); q('.mEndLabel').textContent=fmtTime(music.trimEnd);
+      q('.mDurLabel').textContent=fmtTime(Math.max(0,music.trimEnd-music.trimStart));
+      q('#musicSum').textContent=fmtTime(Math.max(0,music.trimEnd-music.trimStart))+' · громкость '+music.volume+'%';
     }
-    updateMusicTrimVisual();
-    mStartInput.addEventListener('input', function(){
-      var v=parseFloat(mStartInput.value);
-      if(v>music.trimEnd-mMinGap) v=Math.max(0, music.trimEnd-mMinGap);
-      music.trimStart=v; mStartInput.value=v;
-      try{ audioEl.currentTime=v; }catch(e){}
-      updateMusicTrimVisual();
-    });
-    mEndInput.addEventListener('input', function(){
-      var v=parseFloat(mEndInput.value);
-      if(v<music.trimStart+mMinGap) v=Math.min(dur, music.trimStart+mMinGap);
-      music.trimEnd=v; mEndInput.value=v;
-      try{ audioEl.currentTime=v; }catch(e){}
-      updateMusicTrimVisual();
-    });
-    musicCard.querySelector('.musicSetStart').addEventListener('click', function(){
-      var v=Math.max(0, Math.min(audioEl.currentTime, music.trimEnd-mMinGap));
-      music.trimStart=v; mStartInput.value=v; updateMusicTrimVisual();
-    });
-    musicCard.querySelector('.musicSetEnd').addEventListener('click', function(){
-      var v=Math.min(dur, Math.max(audioEl.currentTime, music.trimStart+mMinGap));
-      music.trimEnd=v; mEndInput.value=v; updateMusicTrimVisual();
-    });
-
-    var offsetInput=musicCard.querySelector('#musicOffset'), offsetLabel=musicCard.querySelector('#musicOffsetLabel');
-    offsetInput.addEventListener('input', function(){
-      music.offset=parseFloat(offsetInput.value);
-      offsetLabel.textContent=fmtTime(music.offset);
-    });
+    volInput.addEventListener('input', function(){ music.volume=parseInt(volInput.value,10); volLabel.textContent=music.volume+'%'; paintMusic(); });
+    q('#musicLoop').addEventListener('change', function(e){ music.loop=e.target.checked; });
+    mStart.addEventListener('input', function(){ var v=parseFloat(mStart.value); if(v>music.trimEnd-mMinGap) v=Math.max(0,music.trimEnd-mMinGap); music.trimStart=v; mStart.value=v; try{ audioEl.currentTime=v; }catch(e){} paintMusic(); });
+    mEnd.addEventListener('input', function(){ var v=parseFloat(mEnd.value); if(v<music.trimStart+mMinGap) v=Math.min(dur,music.trimStart+mMinGap); music.trimEnd=v; mEnd.value=v; try{ audioEl.currentTime=v; }catch(e){} paintMusic(); });
+    q('.musicSetStart').addEventListener('click', function(){ var v=Math.max(0,Math.min(audioEl.currentTime,music.trimEnd-mMinGap)); music.trimStart=v; mStart.value=v; paintMusic(); });
+    q('.musicSetEnd').addEventListener('click', function(){ var v=Math.min(dur,Math.max(audioEl.currentTime,music.trimStart+mMinGap)); music.trimEnd=v; mEnd.value=v; paintMusic(); });
+    var offInput=q('#musicOffset'), offLabel=q('#musicOffsetLabel');
+    offInput.addEventListener('input', function(){ music.offset=parseFloat(offInput.value); offLabel.textContent=fmtTime(music.offset); });
+    paintMusic();
   }
 
   // ---------- stats / quality ----------
 
   function updateStats(){
-    statClips.textContent=clips.length;
-    var total=getTotalDur();
+    var n=clips.length, total=getTotalDur();
+    statClips.textContent=n+' '+plural(n,'ролик','ролика','роликов');
     statDur.textContent=fmtTime(total);
-    statMusic.textContent = music ? (music.mode==='mix' ? 'добавлена (смешать)' : 'добавлена (заменить)') : 'не добавлена';
-    exportBtn.disabled = clips.length===0 || clips.some(function(c){ return c.duration===null; });
+    statMusic.textContent = music ? (music.mode==='mix' ? 'с музыкой' : 'музыка вместо звука') : 'без музыки';
+    exportBtn.disabled = n===0 || clips.some(function(c){ return c.duration===null; }) || (music && music.duration===null);
     if(music && music.duration!==null){
       var offsetInput=document.getElementById('musicOffset');
       if(offsetInput){
@@ -746,8 +762,6 @@
     qualitySeg.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
     btn.classList.add('active'); quality=btn.dataset.q;
   });
-
-  var orientSeg=document.getElementById('orientSeg');
   orientSeg.addEventListener('click', function(e){
     var btn=e.target.closest('button'); if(!btn) return;
     orientSeg.querySelectorAll('button').forEach(function(b){b.classList.remove('active');});
@@ -863,6 +877,7 @@
 
   exportBtn.addEventListener('click', async function(){
     errorBox.innerHTML=''; resultBlock.style.display='none';
+    resultsBox.style.display='block'; try{ resultsBox.scrollIntoView({behavior:'smooth', block:'nearest'}); }catch(e){}
     exportBtn.disabled=true;
     document.body.classList.add('exporting');
     progressWrap.style.display='block'; setProgress(0);

@@ -225,8 +225,10 @@
 .panel.editor{grid-template-columns:1fr;}
 .panel.editor .inputs{border-right:none;}
 .panel.editor .results{border-top:1px solid var(--line);}
-.player-wrap{width:100%;height:240px;border-radius:8px;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;}
-.player-wrap video{display:block;max-width:100%;max-height:100%;}
+.player-wrap{position:relative;width:100%;min-height:160px;max-height:min(58vh,480px);aspect-ratio:16/9;border-radius:8px;background:#000;overflow:hidden;margin-bottom:.5rem;}
+.player-wrap video{display:block;width:100%;height:100%;object-fit:contain;}
+.player-wrap.rotated{cursor:pointer;}
+.player-wrap.rotated::after{content:"Нажмите на видео — пуск / пауза";position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:11px;color:rgba(255,255,255,.8);pointer-events:none;text-shadow:0 1px 2px #000;}
 .trim-line{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;margin-bottom:.9rem;}
 .trim-line b{color:var(--ink);font-weight:600;}
 .mark-btns{display:flex;gap:.4rem;}
@@ -254,19 +256,25 @@
 .vol{display:flex;align-items:center;gap:.6rem;font-size:12.5px;color:var(--ink-soft);}
 .vol input{flex:1;min-width:0;}
 .adv{margin-top:.7rem;}
-.adv summary{cursor:pointer;font-size:12.5px;color:var(--ink-soft);}
+.adv summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.6rem;cursor:pointer;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;}
+.adv summary::-webkit-details-marker{display:none;}
+.adv summary::after{content:"▾";color:var(--ink-faint);transition:transform .15s;}
+.adv summary:hover{border-color:var(--accent);}
+.adv[open] summary{margin-bottom:.2rem;}
+.adv[open] summary::after{transform:rotate(180deg);}
 .export-bar{position:sticky;bottom:0;z-index:30;display:flex;align-items:center;gap:.7rem;margin-top:.8rem;padding:.7rem .9rem calc(.7rem + env(safe-area-inset-bottom,0px));background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 -8px 24px -16px rgba(20,24,30,.25);}
 .exp-sum{flex:1;min-width:0;font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums;}
-.exp-set{position:relative;flex-shrink:0;}
+.exp-set{position:static;flex-shrink:0;}
 .exp-set summary{list-style:none;cursor:pointer;font-size:13px;color:var(--ink-soft);padding:.5rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);}
 .exp-set summary::-webkit-details-marker{display:none;}
-.exp-pop{position:absolute;right:0;bottom:calc(100% + .6rem);width:min(320px,86vw);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem;box-shadow:var(--shadow);}
+.exp-pop{position:absolute;left:.7rem;right:.7rem;bottom:calc(100% + .5rem);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.9rem;box-shadow:var(--shadow);}
+@media (min-width:641px){ .exp-pop{left:auto;right:.9rem;width:320px;} }
 .export-bar .btn{width:auto;flex:0 0 auto;padding:.65rem 1.1rem;margin:0;}
 .exporting #editorBody{pointer-events:none;opacity:.55;}
 .exporting .exp-set{pointer-events:none;opacity:.5;}
 html,body{overflow-x:clip;}
 .clip-row.sel .clip-num{background:var(--surface);}
-@media (max-width:520px){ .exp-sum{font-size:12px;} .export-bar{gap:.5rem;padding-left:.7rem;padding-right:.7rem;} }
+@media (max-width:640px){ .export-bar{flex-wrap:wrap;gap:.5rem .6rem;padding-left:.8rem;padding-right:.8rem;} .exp-sum{flex:1 0 100%;font-size:12.5px;} .export-bar .btn{flex:1;} }
 </style>
 </head>
 <body>
@@ -329,7 +337,7 @@ html,body{overflow-x:clip;}
         <input type="file" id="fileInput" accept="video/*" multiple style="display:none;">
         <input type="file" id="musicInput" accept="audio/*" style="display:none;">
         <div id="workArea" style="display:none;">
-          <div class="player-wrap"><video id="mainPlayer" controls playsinline preload="metadata"></video></div>
+          <div class="player-wrap" id="playerWrap"><video id="mainPlayer" controls playsinline preload="metadata"></video></div>
           <div class="trim-slider"><div class="trim-track"></div><div class="trim-range" id="trimRange"></div>
             <input type="range" id="trimStart" min="0" max="1" step="0.1" value="0"><input type="range" id="trimEnd" min="0" max="1" step="0.1" value="1"></div>
           <div class="trim-line"><span id="trimInfo">—</span><span class="mark-btns"><button type="button" id="markIn">⏺ Начало</button><button type="button" id="markOut">⏺ Конец</button></span></div>
@@ -381,7 +389,7 @@ html,body{overflow-x:clip;}
       <p>Выберите ролик в списке — он откроется в плеере сверху. Двумя бегунками под плеером задайте начало и конец, либо поставьте плеер на нужный кадр и нажмите «Начало» или «Конец». Порядок меняется перетаскиванием за значок ⠿ или стрелками ▲▼, итоговое видео склеивается именно в этом порядке. Поворот на 90° и удаление ролика — в меню «⋯». Качество и ориентация итогового видео (альбомная, портретная или автоматически по первому ролику) настраиваются в «Настройках» рядом с кнопкой экспорта.</p>
       <h3>Музыка</h3>
       <p>Кнопка «Добавить музыку» появляется после первого ролика. По умолчанию дорожка смешивается со звуком видео (громкость регулируется); снимите галочку «Оставить звук видео», чтобы звук был только музыкальный. В блоке «Дополнительно» можно выбрать фрагмент дорожки, момент его старта на видео и зациклить его, если он короче видео.</p>
-      <p class="disclaimer">Обработка идёт на вашем устройстве, поэтому скорость и доступная память зависят от браузера и мощности компьютера или телефона. Для длинных или очень тяжёлых роликов экспорт может занять продолжительное время или не хватить памяти — лучше всего инструмент работает в последних версиях Chrome, Edge и Safari на компьютере. Если какой-то из роликов совсем без звука, экспорт с музыкой может завершиться ошибкой — в этом случае попробуйте убрать такой ролик или смешать его с видео, где звук есть.</p>
+      <p class="disclaimer">Обработка идёт на вашем устройстве, поэтому скорость и доступная память зависят от браузера и мощности компьютера или телефона. Для длинных или очень тяжёлых роликов экспорт может занять продолжительное время или не хватить памяти — лучше всего инструмент работает в последних версиях Chrome, Edge и Safari на компьютере.</p>
     </article>
 
   </div>
@@ -475,6 +483,7 @@ html,body{overflow-x:clip;}
   var workArea=document.getElementById('workArea'), mainPlayer=document.getElementById('mainPlayer'), exportBar=document.getElementById('exportBar');
   var trimStartEl=document.getElementById('trimStart'), trimEndEl=document.getElementById('trimEnd'), trimRangeEl=document.getElementById('trimRange'), trimInfo=document.getElementById('trimInfo');
   var markIn=document.getElementById('markIn'), markOut=document.getElementById('markOut'), addMoreBtn=document.getElementById('addMoreBtn'), addMusicBtn=document.getElementById('addMusicBtn');
+  var playerWrap=document.getElementById('playerWrap'), expSet=document.getElementById('expSet');
   var resultsBox=document.getElementById('resultsBox'), inputsBox=document.getElementById('editorBody'), orientSeg=document.getElementById('orientSeg');
   var statClips=document.getElementById('statClips'), statDur=document.getElementById('statDur'), statMusic=document.getElementById('statMusic');
   var qualitySeg=document.getElementById('qualitySeg');
@@ -576,19 +585,31 @@ html,body{overflow-x:clip;}
     });
   }
 
-  function applyRotationPreview(videoEl, clip){
-    var deg=clip.rotation||0;
-    videoEl.style.width=''; videoEl.style.height=''; videoEl.style.maxWidth='100%'; videoEl.style.maxHeight='100%';
-    videoEl.style.transform=deg ? 'rotate('+deg+'deg)' : '';
-    if(deg===90||deg===270){ videoEl.style.width='auto'; videoEl.style.height='100%'; videoEl.style.maxWidth='none'; videoEl.style.maxHeight='240px'; }
+  // the player element always fills its box (so native controls keep full width); the box takes the shape of the exported clip
+  function fitPlayer(){
+    var c=selClip; if(!c) return;
+    var rot=(c.rotation||0)%360, swap=(rot===90||rot===270);
+    var cw=c.w||16, ch=c.h||9, aw=swap?ch:cw, ah=swap?cw:ch;
+    playerWrap.style.aspectRatio=aw+' / '+ah;
+    playerWrap.classList.toggle('rotated', rot!==0);
+    mainPlayer.controls = (rot===0);
+    if(swap){
+      var W=playerWrap.clientWidth, H=playerWrap.clientHeight;
+      mainPlayer.style.cssText='position:absolute;left:50%;top:50%;width:'+H+'px;height:'+W+'px;transform:translate(-50%,-50%) rotate('+rot+'deg);';
+    } else mainPlayer.style.cssText = rot===180 ? 'transform:rotate(180deg);' : '';
   }
+  playerWrap.addEventListener('click', function(){
+    if(selClip && selClip.rotation){ if(mainPlayer.paused){ try{ mainPlayer.play(); }catch(e){} } else mainPlayer.pause(); }
+  });
+  window.addEventListener('resize', fitPlayer);
+  document.addEventListener('click', function(e){ if(expSet.open && !expSet.contains(e.target)) expSet.open=false; });
 
   function selectClip(clip){
     selClip=clip;
     if(!clip){ mainPlayer.removeAttribute('src'); mainPlayer.dataset.url=''; try{ mainPlayer.load(); }catch(e){} return; }
     var seek=function(){ try{ mainPlayer.currentTime=clip.start; }catch(e){} };
     if(mainPlayer.dataset.url!==clip.url){ mainPlayer.dataset.url=clip.url; mainPlayer.src=clip.url; mainPlayer.addEventListener('loadedmetadata', seek, {once:true}); } else seek();
-    applyRotationPreview(mainPlayer, clip);
+    fitPlayer();
     trimStartEl.max=clip.duration; trimEndEl.max=clip.duration; trimStartEl.value=clip.start; trimEndEl.value=clip.end;
     updateTrimUI();
   }
@@ -643,6 +664,7 @@ html,body{overflow-x:clip;}
         '<button class="rowBtn clipMore" type="button" title="Ещё">⋯</button></span>'+
         '<div class="row-menu"><button class="clipRotate" type="button">⟳ Повернуть на 90° (сейчас '+(c.rotation||0)+'°)</button><button class="clipRemove" type="button">✕ Убрать</button></div></div>';
     }).join('');
+    fitPlayer();
   }
   clipList.addEventListener('click', function(e){
     var row=e.target.closest('.clip-row'); if(!row) return;
@@ -650,7 +672,7 @@ html,body{overflow-x:clip;}
     if(e.target.closest('.clipUp')){ if(i>0) move(i,i-1); return; }
     if(e.target.closest('.clipDown')){ if(i<clips.length-1) move(i,i+1); return; }
     if(e.target.closest('.clipMore')){ row.classList.toggle('menu-open'); return; }
-    if(e.target.closest('.clipRotate')){ c.rotation=((c.rotation||0)+90)%360; if(c===selClip) applyRotationPreview(mainPlayer,c); renderClips(); return; }
+    if(e.target.closest('.clipRotate')){ c.rotation=((c.rotation||0)+90)%360; renderClips(); return; }
     if(e.target.closest('.clipRemove')){ removeClip(i); return; }
     if(c.duration!==null && !c.error){ autoSel=false; selectClip(c); renderClips(); }
   });
@@ -703,7 +725,7 @@ html,body{overflow-x:clip;}
         <div class="checkbox-row" style="margin:0;"><input type="checkbox" id="keepAudio"${music.mode==='mix'?' checked':''}><label for="keepAudio">Оставить звук видео</label></div>
         <div class="vol"><label for="musicVol">Громкость</label><input type="range" id="musicVol" min="0" max="200" step="5" value="${music.volume}"><span id="musicVolLabel">${music.volume}%</span></div>
       </div>
-      <details class="adv"><summary>Дополнительно: фрагмент, старт, зацикливание</summary>
+      <details class="adv"><summary>✂ Настроить фрагмент и момент старта музыки</summary>
         <audio src="${music.url}" preload="metadata" controls style="width:100%;margin:.6rem 0;"></audio>
         <p class="hint" style="margin:.2rem 0 .3rem;">Какой фрагмент дорожки использовать</p>
         <div class="trim-slider"><div class="trim-track"></div><div class="trim-range" id="musicTrimRangeEl"></div>
@@ -770,7 +792,7 @@ html,body{overflow-x:clip;}
 
   // ---------- ffmpeg.wasm (loaded lazily on first export) ----------
 
-  var ffmpegInstance=null, ffmpegLoading=null, activeProgressCb=null;
+  var ffmpegInstance=null, ffmpegLoading=null, activeProgressCb=null, activeLogCb=null;
 
   // ffmpeg-core.js/.wasm are self-hosted in the ffmpeg/ folder next to this page
   // (see ffmpeg/README in the site package) so the engine's worker is always
@@ -856,6 +878,7 @@ html,body{overflow-x:clip;}
         terminate: function(){ worker.terminate(); }
       };
       ff.on('progress', function(ev){ if(activeProgressCb) activeProgressCb(ev); });
+      ff.on('log', function(ev){ if(activeLogCb) activeLogCb(ev); });
       ffmpegInstance = ff;
       return ff;
     })();
@@ -869,6 +892,19 @@ html,body{overflow-x:clip;}
       return new Uint8Array(file);
     }
   };
+
+  // true unless ffmpeg's log shows a video stream WITHOUT an audio stream (a missing log never drops the sound)
+  async function clipHasAudio(ff, inName){
+    var sawV=false, sawA=false;
+    activeLogCb=function(ev){
+      var m=(ev && ev.message) ? ev.message : String(ev||'');
+      if(/Stream #\d+:\d+.*: Video:/.test(m)) sawV=true;
+      if(/Stream #\d+:\d+.*: Audio:/.test(m)) sawA=true;
+    };
+    try{ await ff.exec(['-hide_banner','-i',inName,'-t','0.1','-f','null','-']); }catch(e){}
+    activeLogCb=null;
+    return sawA || !sawV;
+  }
 
   function extOf(name, fallback){
     var m = /\.([a-z0-9]+)$/i.exec(name);
@@ -921,9 +957,13 @@ html,body{overflow-x:clip;}
         var rot=c.rotation||0;
         var transposeFilter = rot===90 ? 'transpose=1,' : rot===180 ? 'hflip,vflip,' : rot===270 ? 'transpose=2,' : '';
         var vf=transposeFilter+'scale='+W+':'+H+':force_original_aspect_ratio=decrease,pad='+W+':'+H+':(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30';
-        await ff.exec(['-ss', String(c.start), '-i', inName, '-t', String(dur),
-          '-vf', vf, '-c:v','libx264','-preset','ultrafast','-crf','23',
-          '-c:a','aac','-ar','44100','-ac','2','-movflags','+faststart', outName]);
+        var hasA = await clipHasAudio(ff, inName);
+        var targs = ['-ss', String(c.start), '-i', inName];
+        if(!hasA) targs.push('-f','lavfi','-i','anullsrc=r=44100:cl=stereo');
+        targs.push('-t', String(dur), '-vf', vf);
+        if(!hasA) targs.push('-map','0:v:0','-map','1:a:0','-shortest');
+        targs.push('-c:v','libx264','-preset','ultrafast','-crf','23','-c:a','aac','-ar','44100','-ac','2','-movflags','+faststart', outName);
+        await ff.exec(targs);
         doneUnits++;
         try{ await ff.deleteFile(inName); }catch(e){}
         trimNames.push(outName);
@@ -960,7 +1000,7 @@ html,body{overflow-x:clip;}
         var segDur=Math.max(0.1, segEndRaw-segStart);
         var musicIn='music_frag.m4a';
         await ff.exec(['-ss', String(segStart), '-i', musicRaw, '-t', String(segDur),
-          '-ar','44100','-ac','2','-c:a','aac', musicIn]);
+          '-vn','-ar','44100','-ac','2','-c:a','aac', musicIn]);
         doneUnits++;
         try{ await ff.deleteFile(musicRaw); }catch(e){}
 

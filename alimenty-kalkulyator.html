@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Калькулятор алиментов — НаборНаВсе</title>
+<meta name="description" content="Калькулятор алиментов 2026: 1/4, 1/3 и 1/2 дохода после НДФЛ, твёрдая сумма по прожиточному минимуму, долг по алиментам и неустойка 0,1% в день.">
+<link rel="canonical" href="https://nabornavse.ru/alimenty-kalkulyator.html">
+<style>
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/inter-600.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/inter-700.woff2') format('woff2');}
+  :root{
+    --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
+    --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
+    --radius:10px; --font-body:'Inter', -apple-system, Segoe UI, Roboto, sans-serif;
+    --sidebar-w:270px;
+    --shadow:0 1px 2px rgba(20,24,30,.03), 0 10px 24px -16px rgba(20,24,30,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+      --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+    --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow-wrap:anywhere;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;overscroll-behavior:contain;}
+  body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open{position:fixed;left:0;right:0;overflow:hidden;}
+  .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+  .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
+  .sidebar-title:first-child{margin-top:0;}
+  .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .sidebar a:hover{background:var(--bg);}
+  .sidebar span.soon{color:var(--ink-faint);}
+  .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .sidebar-search{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.5rem .7rem;font-family:var(--font-body);font-size:13.5px;color:var(--ink);margin:.2rem 0 1rem;}
+  .sidebar-search::placeholder{color:var(--ink-faint);}
+  .sidebar-search:focus{outline:none;border-color:var(--accent);}
+  .sidebar-title{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
+  .sidebar-title::after{content:'\25BE';font-size:16px;line-height:1;color:var(--ink-soft);flex-shrink:0;}
+  .sidebar-title.collapsed::after{content:'\25B8';}
+  .sidebar-item-hidden{display:none !important;}
+  .sidebar-no-match{font-size:12.5px;color:var(--ink-faint);padding:.3rem .6rem;display:none;}
+  .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
+  body.nav-open .backdrop{opacity:1;pointer-events:auto;}
+
+  .page{min-height:100vh;}
+
+  .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .site-header-inner{max-width:900px;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .menu-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .logo{font-weight:700;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:1;}
+  .theme-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+
+  header.page-head{padding:1.3rem 0 1.1rem;}
+  .brand{font-size:12px;color:var(--ink-faint);margin:0 0 .4rem;}
+  h1{font-weight:700;font-size:clamp(20px,3vw,26px);line-height:1.2;margin:0 0 .35rem;max-width:26ch;}
+  .lede{color:var(--ink-soft);font-size:13.5px;line-height:1.45;max-width:58ch;margin:0;}
+
+  .panel{display:grid;grid-template-columns:1.1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  @media (max-width:720px){ .panel{grid-template-columns:1fr;} }
+  .inputs{padding:1.3rem 1.3rem;border-right:1px solid var(--line);min-width:0;}
+  @media (max-width:720px){ .inputs{border-right:none;border-bottom:1px solid var(--line);} }
+
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:1rem;}
+  .seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font-family:var(--font-body);font-size:13px;padding:.5rem;border-radius:6px;cursor:pointer;}
+  .seg button.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+
+  .field{margin-bottom:.6rem;background:var(--bg);border-radius:10px;padding:.8rem .9rem .85rem;}
+  .field:last-child{margin-bottom:0;}
+  .field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;gap:8px;}
+  .field-top label{font-size:13.5px;color:var(--ink-soft);}
+  .val-input{font-family:var(--font-body);font-weight:600;font-size:15.5px;text-align:right;background:transparent;
+    border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);width:13ch;padding:2px 2px;
+    font-variant-numeric:tabular-nums;cursor:text;}
+  .val-input:hover{border-bottom-color:var(--accent);}
+  .val-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--line);border-radius:3px;outline:none;margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .menu-btn:hover, .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .seg button:hover:not(.active){color:var(--ink);}
+  .info-btn:active, .menu-btn:active, .theme-btn:active{transform:scale(.94);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  .range-labels{display:flex;justify-content:space-between;margin-top:.3rem;}
+  .range-labels span{font-size:11.5px;color:var(--ink-faint);}
+  .derived{font-size:12.5px;color:var(--ink-soft);margin-top:.5rem;}
+  .derived b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .hint{font-size:11px;color:var(--ink-faint);margin:.6rem 0 0;}
+
+  .results{padding:1.3rem 1.3rem;background:var(--accent-soft);min-width:0;}
+  .panel-eyebrow{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:0 0 1.3rem;}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .result-label{font-size:12.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .result-big{font-weight:700;font-size:clamp(32px,4.6vw,40px);line-height:1;margin:0 0 1.5rem;font-variant-numeric:tabular-nums;}
+  .result-big small{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:6px;}
+  .result-pair{display:flex;gap:1.6rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+  .result-pair div p:first-child{font-size:12px;color:var(--ink-soft);margin:0 0 .25rem;}
+  .result-pair div p:last-child{font-weight:700;font-size:22px;margin:0;font-variant-numeric:tabular-nums;}
+
+  .bar{height:9px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:.55rem;background:var(--line);}
+  .bar-principal{background:var(--accent);height:100%;}
+  .bar-interest{background:var(--accent-2);height:100%;}
+  .bar-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:1.6rem;}
+  .bar-legend .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;}
+
+  .stat-row{display:flex;justify-content:space-between;padding:.65rem 0;border-top:1px solid var(--line);gap:10px;}
+  .stat-row:first-of-type{border-top:none;}
+  .stat-row .k{font-size:13px;color:var(--ink-soft);}
+  .stat-row .v{font-size:14px;font-variant-numeric:tabular-nums;font-weight:500;text-align:right;}
+
+  article{max-width:64ch;margin:2rem auto 0;padding:1.7rem 0 2.2rem;border-top:1px solid var(--line);}
+  article h2{font-weight:700;font-size:20px;margin:0 0 .8rem;}
+  article h2 + p{margin-top:0;}
+  article h3{font-size:15px;font-weight:600;margin:1.6rem 0 .5rem;}
+  article p{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;}
+  article ul{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;padding-left:1.3rem;}
+  article li{margin-bottom:.3rem;}
+  article strong{color:var(--ink);font-weight:600;}
+  .disclaimer{font-size:12.5px;color:var(--ink-faint);margin-top:1.8rem;}
+
+  .site-footer{border-top:1px solid var(--line);padding:1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:1rem;}
+  .site-footer p{font-size:12.5px;color:var(--ink-faint);margin:0;}
+
+  @media (max-width:640px){
+    .sidebar{width:84vw;max-width:300px;}
+  }
+
+  .label-row{display:flex;align-items:center;margin-bottom:.5rem;}
+  .label-row label{font-size:13.5px;color:var(--ink-soft);}
+  .info-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;
+    border:1px solid var(--ink-faint);color:var(--ink-faint);background:transparent;font-size:11px;cursor:pointer;
+    margin-left:6px;flex-shrink:0;line-height:1;padding:0;}
+  .info-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,17,20,.4);opacity:0;pointer-events:none;transition:opacity .2s;
+    z-index:50;display:flex;align-items:center;justify-content:center;padding:1.2rem;}
+  .modal-backdrop.open{opacity:1;pointer-events:auto;}
+  .modal{background:var(--surface);border-radius:12px;max-width:420px;width:100%;padding:1.5rem 1.5rem 1.3rem;box-shadow:0 20px 60px -20px rgba(0,0,0,.35);
+    border:1px solid var(--line);transform:translateY(8px);transition:transform .2s;}
+  .modal-backdrop.open .modal{transform:translateY(0);}
+  .modal h3{margin:0 0 .7rem;font-size:16px;}
+  .modal p{margin:0 0 .6rem;color:var(--ink-soft);font-size:13.5px;line-height:1.6;}
+  .modal-close{margin-top:.4rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+    padding:.45rem 1rem;border-radius:7px;font-size:13px;cursor:pointer;}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:.7rem .9rem;margin-bottom:.6rem;}
+  .toggle-row label{font-size:13.5px;color:var(--ink-soft);}
+  .switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch-track{position:absolute;cursor:pointer;inset:0;background:var(--line);border-radius:22px;transition:.2s;}
+  .switch-track:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:var(--surface);border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+  .switch input:checked + .switch-track{background:var(--accent);}
+  .switch input:checked + .switch-track:before{transform:translateX(16px);}
+
+  .zone-badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:.35rem .7rem;border-radius:20px;margin-bottom:1rem;}
+  .zone-ok{background:#E3F0E6;color:#2E7D43;}
+  .zone-warn{background:#FBF0D9;color:#9A6B10;}
+  .zone-bad{background:#FADADA;color:#A23636;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .zone-ok{background:#1E3324;color:#7BC893;}
+    :root:not([data-theme="light"]) .zone-warn{background:#3A2E12;color:#E3B655;}
+    :root:not([data-theme="light"]) .zone-bad{background:#3A1E1E;color:#E38989;}
+  }
+  :root[data-theme="dark"] .zone-ok{background:#1E3324;color:#7BC893;}
+  :root[data-theme="dark"] .zone-warn{background:#3A2E12;color:#E3B655;}
+  :root[data-theme="dark"] .zone-bad{background:#3A1E1E;color:#E38989;}
+
+
+
+
+  /* ===== дополнения для страниц раздела «Кредиты и ипотека» ===== */
+  :root{ --good:#4A7A5C; --good-soft:#E6F0E9; --bad:#A5554B; --bad-soft:#F5E7E4; --neutral-soft:#EDECE8; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ color-scheme:dark; --good:#86B99A; --good-soft:#1F2B24; --bad:#D68F85; --bad-soft:#322320; --neutral-soft:#2A2D31; }
+  }
+  :root[data-theme="dark"]{ color-scheme:dark; --good:#86B99A; --good-soft:#1F2B24; --bad:#D68F85; --bad-soft:#322320; --neutral-soft:#2A2D31; }
+
+  .section-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.2rem 0 .7rem;}
+  .section-label:first-of-type{margin-top:0;}
+  .panel-eyebrow.spaced{margin-top:1.3rem;}
+
+  .pill{display:inline-block;padding:.18rem .65rem;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--line);margin:0 0 1.2rem;}
+  .pill.good{color:var(--good);border-color:var(--good);background:var(--good-soft);}
+  .pill.bad{color:var(--bad);border-color:var(--bad);background:var(--bad-soft);}
+  .pill.neutral{color:var(--ink-soft);background:var(--neutral-soft);}
+  .note{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:0 0 1.1rem;}
+
+  .cmpbar{margin-bottom:.9rem;}
+  .cmpbar .row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-soft);margin-bottom:.3rem;}
+  .cmpbar .row b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;}
+  .cmpbar .track{height:9px;background:var(--line);border-radius:6px;overflow:hidden;}
+  .cmpbar .fill{height:100%;border-radius:6px;}
+  .cmpbar .fill.a{background:var(--accent-2);}
+  .cmpbar .fill.b{background:var(--accent);}
+  .bar-third{background:var(--ink-faint);height:100%;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:.6rem;}
+  .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:.28rem .75rem;font-family:var(--font-body);font-size:12px;cursor:pointer;}
+  .chip:hover{border-color:var(--accent);color:var(--accent);}
+
+  .date-input{font-family:var(--font-body);font-weight:600;font-size:14.5px;background:transparent;border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);padding:2px 2px;cursor:text;font-variant-numeric:tabular-nums;}
+  .date-input:hover{border-bottom-color:var(--accent);}
+  .date-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:1.2rem;overflow:hidden;min-width:0;}
+  .card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.7rem 1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line);}
+  .card-head h2{font-size:15px;font-weight:600;margin:0;}
+  .card-head .sub{font-size:12.5px;color:var(--ink-faint);margin:.2rem 0 0;}
+  .head-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;}
+  .head-actions .seg{margin-bottom:0;}
+  .head-actions .seg button{padding:.4rem .8rem;}
+  .btn{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:.5rem .95rem;border-radius:8px;font-family:var(--font-body);font-size:13px;cursor:pointer;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);}
+  .btn.primary:hover{color:var(--surface);opacity:.9;}
+  .save-status{font-size:12.5px;color:var(--ink-soft);margin:0;padding:.7rem 1.2rem;border-top:1px solid var(--line);min-height:2.4rem;}
+
+  .tbl-scroll{overflow:auto;max-height:430px;}
+  .tbl-wide{overflow-x:auto;}
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;}
+  table.tbl.min{min-width:540px;}
+  table.tbl th{background:var(--surface);color:var(--ink-soft);font-weight:600;font-size:12px;text-align:right;padding:.65rem .85rem;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.sched th{position:sticky;top:0;z-index:1;}
+  table.tbl td{padding:.5rem .85rem;border-bottom:1px solid var(--line);text-align:right;color:var(--ink);white-space:nowrap;}
+  table.tbl th:first-child, table.tbl td:first-child{text-align:left;}
+  table.tbl tbody tr:hover td{background:var(--bg);}
+  table.tbl tr.cur td{background:var(--accent-soft);font-weight:600;}
+  table.tbl tfoot td{font-weight:600;border-top:1px solid var(--line);background:var(--bg);}
+  table.tbl td.lbl{color:var(--ink-soft);font-weight:400;white-space:normal;}
+  table.tbl td.hl{color:var(--accent);font-weight:600;}
+
+  .chart-box{padding:1rem 1.2rem 1.1rem;}
+  .chart-box svg{display:block;width:100%;height:auto;overflow:visible;}
+  .chart-box svg text{font-family:var(--font-body);font-size:11px;fill:var(--ink-faint);}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font-size:12.5px;color:var(--ink-soft);margin:0 0 .6rem;}
+  .chart-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1.2rem;}
+  @media (max-width:640px){ .two-col{grid-template-columns:1fr;} }
+  .two-col .card{margin-top:0;padding:1.1rem 1.2rem;}
+  .two-col h3{margin:0 0 .6rem;font-size:14.5px;font-weight:600;}
+  .two-col ul{margin:0;padding-left:1.1rem;color:var(--ink-soft);font-size:13.5px;line-height:1.6;}
+  .two-col li{margin-bottom:.3rem;}
+
+  .seg.three button{font-size:12.5px;padding:.5rem .3rem;}
+  .field .seg{margin:.2rem 0 0;}
+  .related{font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin:1.4rem 0 0;}
+  .related a, article a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;}
+  article ul{margin:0 0 1rem;padding-left:1.2rem;color:var(--ink-soft);font-size:14.5px;line-height:1.7;}
+  article .formula{display:block;background:var(--accent-soft);border-radius:8px;padding:.7rem 1rem;color:var(--ink);font-size:14px;margin:0 0 1rem;overflow-x:auto;}
+  .result-big.mid{font-size:clamp(26px,3.8vw,32px);}
+  .stat-row .v.good{color:var(--good);} .stat-row .v.bad{color:var(--bad);}
+
+  h1{max-width:28ch;}
+  .head-actions .seg button{white-space:nowrap;}
+  .head-actions .btn{white-space:nowrap;}
+  .field-top label{min-width:0;}
+  .seg button, .seg4 button{overflow-wrap:normal;word-break:normal;}
+  @media (max-width:480px){ .seg button{font-size:12px;padding-inline:.25rem;} }
+
+  /* ===== дополнения для страниц раздела «Налоги и работа» ===== */
+  [hidden]{display:none !important;}
+  .chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600;}
+  .sel, .num-in{width:100%;font-family:var(--font-body);font-size:14.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;}
+  .sel:focus, .num-in:focus{outline:none;border-color:var(--accent);}
+  .num-in{font-weight:600;font-variant-numeric:tabular-nums;}
+  .field .sel, .field .num-in{margin-top:.15rem;}
+  .toggle-row{gap:12px;}
+  .toggle-row > label:first-child{min-width:0;}
+  .rate-custom{display:flex;align-items:center;gap:8px;margin-top:.7rem;font-size:13px;color:var(--ink-soft);}
+  .rate-custom .num-in{width:7.5ch;padding:.35rem .5rem;text-align:right;}
+  .stat-row .v{white-space:nowrap;}
+  .stat-row .k{min-width:0;}
+  table.tbl.compact th, table.tbl.compact td{overflow-wrap:normal;word-break:normal;}
+  @media (max-width:480px){ table.tbl.compact{font-size:11.5px;} table.tbl.compact th, table.tbl.compact td{padding:.5rem .3rem;} table.tbl.compact th:first-child, table.tbl.compact td:first-child{padding-left:.8rem;} table.tbl.compact th:last-child, table.tbl.compact td:last-child{padding-right:.8rem;} }
+  .period{display:grid;grid-template-columns:auto 1fr auto;gap:.45rem .6rem;align-items:center;background:var(--bg);border-radius:10px;padding:.7rem .8rem;margin-bottom:.5rem;}
+  .period label{font-size:13px;color:var(--ink-soft);}
+  .period .date-input{width:100%;min-width:0;}
+  .period .btn.del{padding:.35rem .6rem;line-height:1;}
+  table.tbl.compact td:first-child{white-space:normal;}
+
+  /* ===== блоки услуг на странице коммунальных платежей ===== */
+  .svc{background:var(--bg);border-radius:10px;padding:.7rem .8rem;margin-bottom:.6rem;}
+  .svc-head{display:flex;flex-direction:column;align-items:stretch;gap:.45rem;margin-bottom:.55rem;}
+  .svc-head h3{margin:0;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .svc-head .seg{margin:0;flex:none;}
+  .svc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,8.5rem);gap:.45rem .7rem;align-items:center;}
+  .svc-grid label{font-size:12.5px;color:var(--ink-soft);}
+  .svc-grid .num-in{margin:0;padding:.4rem .55rem;text-align:right;}
+  table.tbl small{color:var(--ink-faint);font-weight:400;}
+
+</style>
+</head>
+<body>
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
+  <a href="index.html" class="sidebar-home">НаборНаВсе — главная</a>
+  <input type="text" class="sidebar-search" id="sidebarSearch" placeholder="Поиск по инструментам…" autocomplete="off">
+  <p class="sidebar-title">Кредиты и ипотека</p>
+  <a href="ipoteka-calculator.html">Ипотечный платёж</a>
+  <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
+  <a href="kreditny-kalkulyator.html">Кредитный калькулятор</a>
+  <a href="avtokredit-calculator.html">Автокредит</a>
+  <a href="pereplata-po-kreditu.html">Переплата по кредиту</a>
+  <a href="annuitetnyj-i-differentsirovannyj-platezh.html">Аннуитетный и дифференцированный платёж</a>
+  <a href="grafik-platezhey.html">График платежей</a>
+  <a href="refinansirovanie.html">Рефинансирование</a>
+  <a href="ipoteka-s-materinskim-kapitalom.html">Ипотека с маткапиталом</a>
+  <a href="kreditnaya-karta-lgotnyj-period.html">Кредитная карта и льготный период</a>
+  <a href="psk-kredita.html">Полная стоимость кредита (ПСК)</a>
+  <a href="dolgovaya-nagruzka.html">Долговая нагрузка (ПДН)</a>
+  <p class="sidebar-title">Вклады и накопления</p>
+  <a href="vklad-protsenty.html">Вклад с капитализацией</a>
+  <a href="nakopleniya-na-tsel.html">Накопления на цель</a>
+  <a href="vklad-calculator.html">Пополняемый вклад</a>
+  <a href="inflyatsiya-calculator.html">Калькулятор инфляции</a>
+  <a href="pensiya-calculator.html">Пенсия и финансовая независимость</a>
+  <a href="investitsii-calculator.html">Доходность инвестиций</a>
+  <p class="sidebar-title">Налоги и работа</p>
+  <a href="zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
+  <a href="otpusknye-calculator.html">Калькулятор отпускных</a>
+  <a href="bolnichny-calculator.html">Калькулятор больничного</a>
+  <a href="kompensatsiya-otpuska.html">Компенсация за неиспользованный отпуск</a>
+  <a href="kompensatsiya-pri-uvolnenii.html">Компенсация при увольнении</a>
+  <a href="nalogovy-vychet-lechenie.html">Налоговый вычет за лечение</a>
+  <a href="nalogovy-vychet-obuchenie.html">Налоговый вычет за обучение</a>
+  <a href="nalogovy-vychet-ipoteka.html">Налоговый вычет за ипотеку</a>
+  <a href="nalogovy-vychet-pokupka-kvartiry.html">Налоговый вычет за покупку квартиры</a>
+  <a href="nds-kalkulyator.html">Калькулятор НДС</a>
+  <a href="nalog-s-prodazhi-kvartiry-avto.html">Налог с продажи квартиры или авто</a>
+  <a href="imushchestvennye-nalogi.html">Транспортный, земельный, имущественный налог</a>
+  <a href="nalogi-samozanyatyh-ip.html">Налоги для самозанятых и ИП</a>
+  <a href="vychet-iis.html">Налоговый вычет по ИИС</a>
+  <a href="posobie-po-beremennosti-i-rodam.html">Пособие по беременности и родам</a>
+  <a href="strahovoy-stazh.html">Страховой стаж</a>
+  <a href="goshlina-kalkulyator.html">Госпошлина</a>
+  <a href="peni-zhkh-i-nalogi.html">Пени по ЖКХ и налогам</a>
+  <a href="alimenty-kalkulyator.html" class="active">Алименты</a>
+  <a href="kommunalnye-platezhi-kalkulyator.html">Коммунальные платежи</a>
+  <p class="sidebar-title">Даты и проценты</p>
+  <a href="protsenty-kalkulyator.html">Калькулятор процентов</a>
+  <a href="dni-mezhdu-datami.html">Дни между датами</a>
+  <a href="kalkulyator-vozrasta.html">Калькулятор возраста</a>
+  <a href="pribavit-dni-k-date.html">Прибавить или вычесть дни из даты</a>
+  <a href="rabochie-dni.html">Рабочие дни в месяце</a>
+  <a href="minuty-chasy-poyasa.html">Минуты в часы и часовые пояса</a>
+  <a href="drobi-okruglenie.html">Дроби и округление</a>
+  <a href="proportsii.html">Пропорции и правило трёх</a>
+  <a href="rimskie-tsifry.html">Римские цифры и системы счисления</a>
+  <p class="sidebar-title">Конвертеры</p>
+  <a href="konverter-izobrazheniy.html">Универсальный конвертер изображений</a>
+  <a href="izmenenie-razmera.html">Изменение размера изображений</a>
+  <a href="obrezka-izobrazheniy.html">Обрезка изображений</a>
+  <a href="szhatie-izobrazheniy.html">Сжатие изображений</a>
+  <a href="heic-v-jpg.html">HEIC в JPG</a>
+  <a href="jpg-v-pdf.html">JPG в PDF</a>
+  <a href="pdf-v-jpg.html">PDF в JPG</a>
+  <a href="obedinenie-szhatie-pdf.html">Объединение и сжатие PDF</a>
+  <a href="konverter-temperatury.html">Универсальный конвертер температуры</a>
+  <a href="konverter-dliny.html">Универсальный конвертер длины</a>
+  <a href="konverter-materialov.html">Площадь в материалы для ремонта</a>
+  <a href="edinitsy-izmereniya.html">Вес, объём, площадь, скорость</a>
+  <a href="davlenie-energiya-dannye.html">Давление, энергия, данные</a>
+  <a href="razmery-odezhdy-obuvi.html">Размеры одежды и обуви</a>
+  <a href="kulinarnye-mery.html">Кулинарные меры</a>
+  <a href="dyuymy-v-santimetry.html">Дюймы в сантиметры</a>
+  <a href="mili-v-kilometry.html">Мили в километры</a>
+  <a href="funty-v-kilogrammy.html">Фунты в килограммы</a>
+  <p class="sidebar-title">Текст</p>
+  <a href="schetchik-simvolov.html">Счётчик символов и слов</a>
+  <a href="smena-registra-translit.html">Смена регистра и транслитерация</a>
+  <p class="sidebar-title">Видео</p>
+  <a href="redaktor-video.html">Редактор видео</a>
+  <a href="szhatie-video.html">Сжатие видео</a>
+  <a href="video-v-gif.html">Видео в GIF</a>
+  <a href="izvlech-zvuk.html">Извлечь звук из видео</a>
+</nav>
+
+<div class="page" id="page">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Меню инструментов">☰</button>
+      <a class="logo" href="index.html">НаборНаВсе</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Переключить тему">◐</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="page-head">
+      <p class="brand">Налоги и работа</p>
+      <h1>Калькулятор алиментов на детей</h1>
+      <p class="lede">Сколько составят алименты: доля от дохода на одного, двоих и троих детей, твёрдая сумма в прожиточных минимумах, долг и неустойка.</p>
+    </header>
+
+    <div class="panel">
+      <div class="inputs">
+        <p class="panel-eyebrow">Что считаем</p>
+        <div class="seg three" id="modeToggle"><button type="button" data-v="share" class="active">Доля дохода</button><button type="button" data-v="fixed">Твёрдая сумма</button><button type="button" data-v="debt">Долг</button></div>
+        <div id="wKids">
+        <div class="field">
+          <div class="field-top"><label for="kids">Количество детей</label><input class="val-input" id="kidsVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="kids" min="1" max="8" step="1" value="1">
+          <div class="range-labels"><span>1</span><span>8</span></div>
+        </div>
+        </div>
+        <div id="wShare">
+          <p class="panel-eyebrow spaced">Доход плательщика</p>
+        <div class="field">
+          <div class="field-top"><label for="inc">Доход в месяц</label><input class="val-input" id="incVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="inc" min="0" max="1500000" step="1000" value="80000">
+          <div class="range-labels"><span>0</span><span>1,5 млн</span></div>
+        </div><div class="seg" id="incType"><button type="button" data-v="gross" class="active">До вычета НДФЛ</button><button type="button" data-v="net">На руки</button></div>
+          
+        <div class="field">
+          <div class="field-top"><label for="shareMode">Размер доли <button class="info-btn" type="button" data-term="share" style="margin-left:6px;">?</button></label></div>
+          <select class="sel" id="shareMode"><option value="law">По закону: 1/4, 1/3 или 1/2</option><option value="custom">Своя доля (суд или соглашение)</option></select>
+        </div>
+          <div id="pctWrap">
+        <div class="field">
+          <div class="field-top"><label for="pct">Доля дохода</label><input class="val-input" id="pctVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="pct" min="1" max="70" step="1" value="25">
+          <div class="range-labels"><span>1%</span><span>70%</span></div>
+        </div>
+          </div>
+        </div>
+        <div id="wFixed">
+          <p class="panel-eyebrow spaced">Твёрдая сумма</p>
+        <div class="field">
+          <div class="field-top"><label for="pm">Прожиточный минимум на ребёнка <button class="info-btn" type="button" data-term="pm" style="margin-left:6px;">?</button></label><input class="val-input" id="pmVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="pm" min="8000" max="40000" step="1" value="18371">
+          <div class="range-labels"><span>8 тыс.</span><span>40 тыс.</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="kpm">Размер на каждого ребёнка</label><input class="val-input" id="kpmVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="kpm" min="0.25" max="5" step="0.05" value="1">
+          <div class="range-labels"><span>0,25</span><span>5 ПМ</span></div>
+        </div>
+        </div>
+        <div id="wDebt">
+          <p class="panel-eyebrow spaced">Задолженность</p>
+          <p class="note">Для алиментов по решению суда или судебному приказу: неустойка 0,1% в день с 10.08.2018 (до этой даты — 0,5%).</p>
+        <div class="field">
+          <div class="field-top"><label for="mAl">Алименты в месяц</label><input class="val-input" id="mAlVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="mAl" min="1000" max="300000" step="500" value="15000">
+          <div class="range-labels"><span>1 тыс.</span><span>300 тыс.</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="dFrom">Срок первого неоплаченного платежа</label><input class="date-input" id="dFrom" type="date"></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="dTo">Дата расчёта</label><input class="date-input" id="dTo" type="date"></div>
+        </div>
+        </div>
+        <p class="hint">Значение можно ввести вручную — кликните по числу.</p>
+      </div>
+
+      <div class="results">
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат расчёта</p>
+        <p class="live-badge"><span class="live-dot"></span>Пересчитывается автоматически</p>
+        <p class="result-label" id="oLabel">Алименты в месяц</p>
+        <p class="result-big" id="oMain">—</p>
+        <p class="pill neutral" id="oPill">—</p>
+        <div class="result-pair">
+          <div><p id="pA">—</p><p id="oA" style="font-size:18px;">—</p></div>
+          <div><p id="pB">—</p><p id="oB" style="font-size:18px;">—</p></div>
+        </div>
+        <div class="stat-row"><span class="k" id="k1">—</span><span class="v" id="v1">—</span></div>
+        <div class="stat-row"><span class="k" id="k2">—</span><span class="v" id="v2">—</span></div>
+        <div class="stat-row"><span class="k" id="k3">—</span><span class="v" id="v3">—</span></div>
+        <div class="stat-row"><span class="k" id="k4">—</span><span class="v" id="v4">—</span></div>
+      </div>
+    </div>
+
+
+    <article>
+      <h2>Сколько составляют алименты на детей</h2>
+      <p>Если родители не договорились, суд взыскивает алименты на несовершеннолетних детей в долях от заработка и иного дохода: 1/4 на одного ребёнка, 1/3 на двоих, 1/2 на троих и больше (ст. 81 СК РФ). Суд может уменьшить или увеличить долю с учётом материального и семейного положения сторон. Родители вправе сами договориться о другом размере и закрепить его в нотариальном соглашении.</p>
+      <p>Доля делится между детьми поровну. Пример. Доход 100 000 рублей до налога, после НДФЛ 13% остаётся 87 000. Алименты на одного ребёнка: 87 000 / 4 = 21 750 рублей. На двоих: 87 000 / 3 = 29 000 рублей, по 14 500 на каждого.</p>
+      <h3>Из какого дохода считаются алименты</h3>
+      <p>Алименты удерживают из дохода после уплаты НДФЛ. База — зарплата, премии, отпускные, пособия по временной нетрудоспособности и другие виды дохода из перечня, утверждённого постановлением Правительства от 18.07.1996 № 841. Общий размер удержаний из зарплаты не должен превышать 70% (ст. 138 ТК РФ и ст. 99 Закона об исполнительном производстве). Обычное ограничение в 20% и 50% на алименты не распространяется.</p>
+      <p>Калькулятор считает налог при неизменной ежемесячной зарплате: годовой налог по шкале 13/15/18/20/22% делится на 12. Если доход скачет по месяцам, фактическая сумма будет отличаться: алименты считают с реальной выплаты каждого месяца.</p>
+      <h3>Твёрдая сумма и прожиточный минимум</h3>
+      <p>Суд назначает алименты в твёрдой денежной сумме, если у плательщика нерегулярный или нестабильный доход, доход получен в натуре или в валюте, он официально не работает, либо доли применить нельзя (ст. 83 СК РФ). Обычно сумму выражают в прожиточных минимумах на детей. В целом по России на 2026 год он составляет 18 371 рубль, но у каждого региона свой, и в калькулятор лучше ввести значение вашего региона. Твёрдая сумма индексируется пропорционально росту прожиточного минимума (ст. 117 СК РФ).</p>
+      <h3>Долг по алиментам и неустойка</h3>
+      <p>Если алименты назначены судом (решением, судебным приказом) и долг возник по вине плательщика, он платит получателю неустойку 0,1% от суммы невыплаченных алиментов за каждый день просрочки (п. 2 ст. 115 СК РФ). Такая ставка действует с 10 августа 2018 года, до этой даты неустойка была 0,5% в день; за просрочку, которая началась раньше и продолжается, периоды считаются по своим ставкам, как в калькуляторе. Размер неустойки суд вправе уменьшить с учётом материального и семейного положения плательщика.</p>
+      <p>Если алименты платятся по нотариальному соглашению, ответственность определяет само соглашение (п. 1 ст. 115 СК РФ), и калькулятор для такого случая не подходит: посмотрите условия своего соглашения. Вкладка «Долг» рассчитана на алименты по судебному решению: ежемесячные платежи в одно и то же число, неустойка начисляется на каждый неоплаченный платёж со следующего дня после срока.</p>
+      <span class="formula">Неустойка = неоплаченный платёж × 0,1% × дни просрочки</span>
+      <p>Пример. Платёж 10 000 рублей не внесён 1 августа, 1 сентября и 1 октября 2026 года. На 26 октября долг 30 000 рублей, неустойка 10 000 × 0,1% × (86 + 55 + 25) = 1 660 рублей.</p>
+      <p class="related">Смотрите также: <a href="zarplata-ndfl.html">зарплата на руки (НДФЛ)</a>, <a href="goshlina-kalkulyator.html">госпошлина в суд</a>, <a href="peni-zhkh-i-nalogi.html">пени и проценты по ст. 395 ГК</a>.</p>
+      <p class="disclaimer">Расчёт носит справочный характер и не является налоговой или юридической консультацией. Нормы и лимиты меняются, поэтому для важных решений сверьтесь с актуальной редакцией закона и сайтом ФНС.</p>
+    </article>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. <a href="politika-konfidentsialnosti.html" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">—</h3>
+    <div id="modalBody"></div>
+    <button class="modal-close" id="modalClose">Понятно</button>
+  </div>
+</div>
+
+<script>
+(function(){
+/* ===== общие расчётные функции сайта НаборНаВсе ===== */
+function $(id){ return document.getElementById(id); }
+function r2(x){ return Math.round(x*100)/100; }
+function annuityPay(P, i, n){
+  if(n<=0) return P;
+  return i===0 ? P/n : P*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
+}
+/* График с точностью до копеек: платёж округляется, последний платёж закрывает остаток */
+function buildSchedule(P, annualRate, n, scheme){
+  var i=annualRate/100/12, bal=r2(P), rows=[];
+  var M = scheme==='annuitet' ? r2(annuityPay(P,i,n)) : 0;
+  var base = r2(P/n);
+  for(var k=1;k<=n;k++){
+    var interest=r2(bal*i), principal, pay;
+    if(k===n){ principal=bal; pay=r2(principal+interest); }
+    else if(scheme==='annuitet'){ pay=M; principal=r2(M-interest); }
+    else { principal=base; pay=r2(principal+interest); }
+    bal=r2(bal-principal);
+    rows.push({k:k, pay:pay, principal:principal, interest:interest, balance:bal<0?0:bal});
+  }
+  return rows;
+}
+function sumField(rows, f){ var s=0; for(var j=0;j<rows.length;j++) s+=rows[j][f]; return s; }
+
+function addMonths(d, k){
+  var y=d.getFullYear(), m=d.getMonth()+k, day=d.getDate();
+  var last=new Date(y, m+1, 0).getDate();
+  return new Date(y, m, Math.min(day,last));
+}
+function pad2(v){ return (v<10?'0':'')+v; }
+function fmtDate(d){ return pad2(d.getDate())+'.'+pad2(d.getMonth()+1)+'.'+d.getFullYear(); }
+function toISO(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+
+function money(n){ return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+function moneySigned(n){ return (n<0?'−':'') + money(Math.abs(n)); }
+function money2(n){ return n.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pct(n){ return n.toFixed(1).replace('.',',') + '%'; }
+function fmtInt(v){ return String(Math.round(v)); }
+function fmtDec(v){ return String(v); }
+function plural(n, one, few, many){
+  var m10=n%10, m100=n%100;
+  if(m10===1 && m100!==11) return one;
+  if(m10>=2 && m10<=4 && (m100<10||m100>=20)) return few;
+  return many;
+}
+function termText(months){
+  var y=Math.floor(months/12), m=months%12, parts=[];
+  if(y) parts.push(y+' '+plural(y,'год','года','лет'));
+  if(m) parts.push(m+' мес.');
+  return parts.length ? parts.join(' ') : '0 мес.';
+}
+function monthsText(v){ return Math.round(v)+' мес.'; }
+function daysText(v){ var d=Math.round(v); return d+' '+plural(d,'день','дня','дней'); }
+function shortMoney(v){
+  function t(x){ return (Math.round(x*10)/10).toString().replace('.',','); }
+  if(v>=1e6) return t(v/1e6)+' млн';
+  if(v>=1e3) return t(v/1e3)+' тыс.';
+  return String(Math.round(v));
+}
+/* верх шкалы: 4 одинаковых «круглых» шага (1, 2, 2.5, 5 × 10^k), покрывающих v */
+function niceMax(v){
+  if(v<=0) return 4;
+  var raw=v/4, p=Math.pow(10, Math.floor(Math.log(raw)/Math.LN10)), f=raw/p;
+  var nf = f<=1 ? 1 : f<=2 ? 2 : f<=2.5 ? 2.5 : f<=5 ? 5 : 10;
+  return nf*p*4;
+}
+
+/* Рефинансирование: сравнение по оставшемуся сроку */
+function refi(B, rOld, nOld, rNew, nNew, costs){
+  var mOld=annuityPay(B,rOld/1200,nOld), mNew=annuityPay(B,rNew/1200,nNew);
+  var totOld=mOld*nOld, totNew=mNew*nNew;
+  var saving=totOld-(totNew+costs);
+  var payback=null;
+  if(saving>0 && costs>0){
+    var cumOld=0, cumNew=0, nmax=Math.max(nOld,nNew);
+    for(var k=1;k<=nmax;k++){
+      if(k<=nOld) cumOld+=mOld;
+      if(k<=nNew) cumNew+=mNew;
+      if(cumOld-cumNew-costs>=0){ payback=k; break; }
+    }
+  }
+  return {mOld:mOld, mNew:mNew, totOld:totOld, totNew:totNew, overOld:totOld-B, overNew:totNew-B+costs, saving:saving, payback:payback};
+}
+
+/* Досрочное погашение суммой mk после after-го платежа.
+   mode 'term': платёж прежний, срок сокращается; mode 'payment': срок прежний, платёж пересчитывается */
+function simEarly(P, annualRate, n, mk, after, mode){
+  var i=annualRate/100/12, bal=r2(P), M=r2(annuityPay(P,i,n)), months=0, interest=0, payAfter=M;
+  if(P<=0) return {months:0, interest:0, pay:0, payAfter:0};
+  while(bal>0.004 && months<n+1){
+    var ip=r2(bal*i), pay=M;
+    if(pay>=bal+ip || months+1===n) pay=r2(bal+ip);
+    bal=r2(bal-(pay-ip)); interest+=ip; months++;
+    if(months===after && bal>0){
+      bal=r2(Math.max(0, bal-mk));
+      if(mode==='payment' && bal>0 && n-months>0){ M=r2(annuityPay(bal,i,n-months)); payAfter=M; }
+      else if(mode==='payment'){ payAfter=0; }
+    }
+  }
+  return {months:months, interest:interest, pay:r2(annuityPay(P,i,n)), payAfter:payAfter};
+}
+
+/* Льготный период карты */
+function graceInterest(P, annualRate, grace, days, method){
+  if(days<=grace) return {interest:0, accrualDays:0};
+  var d = method==='purchase' ? days : days-grace;
+  return {interest:P*annualRate/100/365*d, accrualDays:d};
+}
+/* Погашение карты минимальными платежами: платёж = процент от долга с процентами, но не меньше floor */
+function simMinPayment(P, annualRate, pctMin, floor){
+  var i=annualRate/100/12, bal=P, months=0, interestSum=0, first=0, last=0, firstInterest=0, cap=1200;
+  while(bal>0.005 && months<cap){
+    var ip=bal*i, due=bal+ip;
+    var pay=Math.max(pctMin/100*due, floor);
+    if(pay>=due) pay=due;
+    if(months===0){ first=pay; firstInterest=ip; }
+    bal=due-pay; interestSum+=ip; months++; last=pay;
+  }
+  return {months:months, interest:interestSum, first:first, last:last, firstInterest:firstInterest, finished:bal<=0.005};
+}
+
+/* ===== пошлины, пени, проценты, алименты, коммунальные платежи (справочные расчёты) ===== */
+/* даты — числа: сколько суток прошло с 1 января 1970 (UTC), поэтому переход на летнее время ничего не ломает */
+function dn(iso){ var p=iso.split('-'); return Math.round(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000); }
+function isoOf(n){ var d=new Date(n*86400000); return d.getUTCFullYear()+'-'+pad2(d.getUTCMonth()+1)+'-'+pad2(d.getUTCDate()); }
+function fmtISO(iso){ var p=iso.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; }
+function fmtDN(n){ return fmtISO(isoOf(n)); }
+function yearOfDN(n){ return new Date(n*86400000).getUTCFullYear(); }
+function isLeapY(y){ return (y%4===0 && y%100!==0) || y%400===0; }
+function r2k(x){ return Math.round(x*100+1e-9)/100; }
+function rubRound(x){ return Math.floor(x+0.5+1e-9); }            /* до рубля: меньше 50 коп. отбрасывается, 50 коп. и больше — рубль */
+function parseNum(s){
+  var x=String(s).replace(/[\s\u00a0\u202f]/g,'').replace(/,/g,'.').replace(/[^0-9.]/g,'');
+  var p=x.split('.');
+  if(p.length>2){   /* несколько точек или запятых — это разделители тысяч; если в последней группе не 3 цифры, это дробная часть */
+    var last=p.pop(); x=(last.length===3) ? p.join('')+last : p.join('')+'.'+last;
+  }
+  var n=parseFloat(x); return isNaN(n) ? 0 : n;
+}
+function dec(x, d){ return x.toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:d}); }
+
+/* ---------- ключевая ставка Банка России: с какой даты действует какая ставка ---------- */
+var KEYRATES=[
+  ['2018-12-17',7.75],['2019-06-17',7.5],['2019-07-29',7.25],['2019-09-09',7],['2019-10-28',6.5],['2019-12-16',6.25],
+  ['2020-02-10',6],['2020-04-27',5.5],['2020-06-22',4.5],['2020-07-27',4.25],
+  ['2021-03-22',4.5],['2021-04-26',5],['2021-06-15',5.5],['2021-07-26',6.5],['2021-09-13',6.75],['2021-10-25',7.5],['2021-12-20',8.5],
+  ['2022-02-14',9.5],['2022-02-28',20],['2022-04-11',17],['2022-05-04',14],['2022-05-27',11],['2022-06-14',9.5],['2022-07-25',8],['2022-09-19',7.5],
+  ['2023-07-24',8.5],['2023-08-15',12],['2023-09-18',13],['2023-10-30',15],['2023-12-18',16],
+  ['2024-07-29',18],['2024-09-16',19],['2024-10-28',21],
+  ['2025-06-09',20],['2025-07-28',18],['2025-09-15',17],['2025-10-27',16.5],['2025-12-22',16],
+  ['2026-02-16',15.5],['2026-03-23',15],['2026-04-27',14.5],['2026-06-22',14.25],['2026-07-27',14]
+];
+var KR_ACTUAL='2026-10-26';          /* на эту дату таблица сверена (23.10.2026 ставку сохранили на 14%) */
+var KR=KEYRATES.map(function(e){ return {d:dn(e[0]), r:e[1]}; });
+function keyRateOn(d){
+  var r=KR[0].r;
+  for(var i=0;i<KR.length;i++){ if(KR[i].d<=d) r=KR[i].r; else break; }
+  return r;
+}
+/* делит период [a, b] (включительно) на куски, внутри которых ставка не меняется; cuts — дополнительные дни начала нового куска */
+function rateSegments(a, b, cuts, noKR){
+  if(b<a) return [];
+  var pts=[a];
+  if(!noKR) KR.forEach(function(e){ if(e.d>a && e.d<=b) pts.push(e.d); });
+  (cuts||[]).forEach(function(c){ if(c>a && c<=b) pts.push(c); });
+  pts.sort(function(x,y){ return x-y; });
+  var u=[]; pts.forEach(function(p){ if(!u.length || u[u.length-1]!==p) u.push(p); });
+  var out=[];
+  for(var i=0;i<u.length;i++){
+    var s=u[i], e=(i+1<u.length ? u[i+1]-1 : b);
+    out.push({a:s, b:e, days:e-s+1, rate:keyRateOn(s)});
+  }
+  return out;
+}
+
+/* ---------- пени по налогам и взносам (ст. 75 НК РФ) ----------
+   со дня, следующего за сроком, по день уплаты включительно; ставка — ключевая на каждый день;
+   физлица и ИП: 1/300; организации: 1/300 по 30-й день просрочки, с 31-го дня 1/150 */
+function peniNk(o){   /* debt, due, pay (номера дней), org */
+  var n=Math.max(0, o.pay-o.due);
+  if(n===0) return {n:0, rows:[], pen:0};
+  var segs=rateSegments(o.due+1, o.pay, o.org ? [o.due+31] : []), rows=[], pen=0;
+  segs.forEach(function(s){
+    var div=(o.org && s.a>=o.due+31) ? 150 : 300;
+    var p=r2k(o.debt*s.rate/100/div*s.days);
+    rows.push({a:s.a, b:s.b, days:s.days, rate:s.rate, div:div, pen:p}); pen+=p;
+  });
+  return {n:n, rows:rows, pen:r2k(pen)};
+}
+
+/* ---------- пени за ЖКУ (ч. 14 ст. 155 ЖК РФ) ----------
+   30 дней просрочки без пеней; с 31-го по 90-й день 1/300, с 91-го дня 1/130 ставки
+   (по взносам на капремонт — 1/300 весь срок). Ставка одна на весь расчёт: на день оплаты.
+   С 28.02.2022 по 31.12.2026 действует потолок 9,5% (постановления Правительства № 474 и № 329). */
+var GKH_CAP_FROM=dn('2022-02-28'), GKH_CAP_TO=dn('2026-12-31');
+function gkhRate(pay, mode, own){
+  var key=keyRateOn(pay);
+  if(mode==='own') return {R:own, key:key, capped:false};
+  if(mode==='rule' && pay>=GKH_CAP_FROM && pay<=GKH_CAP_TO && key>9.5) return {R:9.5, key:key, capped:true};
+  return {R:key, key:key, capped:false};
+}
+function peniGkh(o){   /* debt, due, pay, mode ('rule'|'key'|'own'), own, capital */
+  var n=Math.max(0, o.pay-o.due), g=gkhRate(o.pay, o.mode, o.own);
+  var free=Math.min(n,30), d1=Math.max(0, Math.min(n,90)-30), d2=Math.max(0, n-90);
+  var div2=o.capital ? 300 : 130;
+  var p1=r2k(o.debt*g.R/100/300*d1), p2=r2k(o.debt*g.R/100/div2*d2);
+  return {n:n, free:free, d1:d1, d2:d2, div2:div2, R:g.R, key:g.key, capped:g.capped, p1:p1, p2:p2, pen:r2k(p1+p2),
+          day1:r2k(o.debt*g.R/100/300), day2:r2k(o.debt*g.R/100/div2)};
+}
+
+/* ---------- проценты по ст. 395 ГК РФ ----------
+   долг × ставка × дни / дней в году, отдельно по каждому периоду действия ставки и по каждому году */
+var MORA_A=dn('2022-04-01'), MORA_B=dn('2022-10-01');
+function interest395(o){   /* sum, due, pay, mode ('key'|'own'), own, mora */
+  var n=Math.max(0, o.pay-o.due);
+  if(n===0) return {n:0, rows:[], int:0, skipped:0};
+  var cuts=[], y;
+  for(y=yearOfDN(o.due+1)+1; y<=yearOfDN(o.pay); y++) cuts.push(dn(y+'-01-01'));
+  if(o.mora){ cuts.push(MORA_A); cuts.push(MORA_B+1); }
+  var segs=rateSegments(o.due+1, o.pay, cuts, o.mode==='own'), rows=[], tot=0, skipped=0;
+  segs.forEach(function(s){
+    var yr=yearOfDN(s.a), basis=isLeapY(yr) ? 366 : 365;
+    var rate=o.mode==='own' ? o.own : s.rate;
+    var mor=!!(o.mora && s.a>=MORA_A && s.b<=MORA_B);
+    var p=mor ? 0 : r2k(o.sum*rate/100/basis*s.days);
+    if(mor) skipped+=s.days;
+    rows.push({a:s.a, b:s.b, days:s.days, rate:rate, basis:basis, int:p, mora:mor}); tot+=p;
+  });
+  return {n:n, rows:rows, int:r2k(tot), skipped:skipped};
+}
+
+/* ---------- госпошлина (гл. 25.3 НК РФ, ставки с 09.09.2024) ----------
+   строка шкалы: [верхняя граница цены иска, фиксированная часть, процент, с какой суммы считается процент] */
+var FEE_GEN=[
+  [100000,4000,0,0],[300000,4000,3,100000],[500000,10000,2.5,300000],[1000000,15000,2,500000],[3000000,25000,1,1000000],
+  [8000000,45000,0.7,3000000],[24000000,80000,0.35,8000000],[50000000,136000,0.3,24000000],[100000000,214000,0.2,50000000],
+  [Infinity,314000,0.15,100000000]
+];
+var FEE_GEN_MAX=900000;
+var FEE_ARB=[
+  [100000,10000,0,0],[1000000,10000,5,100000],[10000000,55000,3,1000000],[50000000,325000,1,10000000],[Infinity,725000,0.5,50000000]
+];
+var FEE_ARB_MAX=10000000;
+function feeScale(P, tbl, cap){
+  var i=0;
+  for(; i<tbl.length-1; i++){ if(P<=tbl[i][0]) break; }
+  var r=tbl[i], raw=r[1]+r[2]/100*Math.max(0, P-r[3]);
+  var fee=rubRound(raw), capped=false;
+  if(cap && fee>cap){ fee=cap; capped=true; }
+  return {fee:fee, idx:i, fixed:r[1], pct:r[2], over:r[3], capped:capped};
+}
+/* истец по иску о защите прав потребителей: до 1 млн ₽ пошлины нет, выше — шкала за вычетом 25 000 ₽ */
+function feeConsumer(P){ return P<=1000000 ? 0 : feeScale(P, FEE_GEN, FEE_GEN_MAX).fee-25000; }
+/* фиксированные пошлины: [ключ, название, физлицо, организация (null — нет)] */
+var FEE_GEN_FIXED=[
+  ['nonprop','Неимущественный иск',3000,20000],
+  ['divorce','Расторжение брака через суд',5000,null],
+  ['appeal','Апелляционная жалоба',3000,15000],
+  ['cass','Кассационная жалоба',5000,20000],
+  ['vs','Жалоба в Верховный Суд РФ',7000,25000],
+  ['admin','Оспаривание решения или действия органа власти',3000,15000],
+  ['npa','Оспаривание нормативного акта',4000,20000],
+  ['alim','Иск о взыскании алиментов (истец освобождён)',0,null]
+];
+var FEE_ARB_FIXED=[
+  ['nonprop','Неимущественный иск, оспаривание сделки, расторжение договора',15000,50000]
+];
+
+/* ---------- алименты (ст. 81, 83, 115 СК РФ) ---------- */
+var AL_SCALE=[[2400000,13],[5000000,15],[20000000,18],[50000000,20],[Infinity,22]];   /* НДФЛ с 2025 года */
+function alNet(gross){   /* доход в месяц на руки при неизменной зарплате: годовой налог по шкале, поделённый на 12 */
+  var y=gross*12, t=0, prev=0;
+  for(var i=0;i<AL_SCALE.length;i++){
+    var lim=AL_SCALE[i][0], r=AL_SCALE[i][1];
+    if(y>prev) t+=(Math.min(y,lim)-prev)*r/100;
+    prev=lim;
+  }
+  return gross-t/12;
+}
+function alimShare(kids){ return kids>=3 ? 0.5 : (kids===2 ? 1/3 : 0.25); }
+function alimony(o){   /* inc, incType ('gross'|'net'), kids, pct (своя доля в процентах или null) */
+  var net=o.incType==='net' ? o.inc : alNet(o.inc);
+  var share=(o.pct!=null) ? o.pct/100 : alimShare(o.kids);
+  var sum=r2k(net*share);
+  return {net:r2k(net), share:share, sum:sum, perChild:r2k(sum/o.kids), left:r2k(net-sum), cap70:r2k(net*0.7)};
+}
+function alimFixed(pm, k, kids){ var per=r2k(pm*k); return {per:per, total:r2k(per*kids)}; }
+function monthlyDue(firstDN, k){   /* k-й по счёту платёж: то же число месяца (в коротком месяце — последний день) */
+  var d=new Date(firstDN*86400000), y=d.getUTCFullYear(), m=d.getUTCMonth()+k, day=d.getUTCDate();
+  var last=new Date(Date.UTC(y, m+1, 0)).getUTCDate();
+  return Math.round(Date.UTC(y, m, Math.min(day,last))/86400000);
+}
+var ALIM_CUT=dn('2018-08-10');   /* с 10.08.2018 неустойка по алиментам 0,1% в день (ФЗ № 224-ФЗ), раньше — 0,5% */
+function alimDebt(o){   /* amount (в месяц), first (срок первого неоплаченного платежа), to (дата расчёта) */
+  var rows=[], debt=0, pen=0, k=0, due, old=0;
+  while((due=monthlyDue(o.first,k))<o.to && k<600){
+    var days=o.to-due, od=Math.max(0, Math.min(o.to, ALIM_CUT-1)-due), nd=days-od;
+    var p=r2k(o.amount*(0.005*od+0.001*nd));
+    rows.push({due:due, days:days, pen:p, oldDays:od}); debt+=o.amount; pen+=p; old+=od; k++;
+  }
+  return {months:rows.length, debt:r2k(debt), pen:r2k(pen), total:r2k(debt+pen), rows:rows, old:old, capped:k>=600 && monthlyDue(o.first,k)<o.to};
+}
+
+/* ---------- коммунальные платежи ----------
+   o: persons, area, other, coef (повышающий коэффициент при нормативе: ХВС 3, ГВС и электричество 1,5),
+      cold/hot/el/gas: {mode:'meter'|'norm', tar, vol (по счётчику), norm (на человека)}, sew: {tar} (водоотведение, ₽/м³),
+      heat: {tar (₽/Гкал), norm (Гкал/кв. м)}, tko: {tar (₽ в месяц с человека)}, maint: {tar}, cap: {tar} (₽/кв. м) */
+var UTIL_K={cold:3, hot:1.5, el:1.5, gas:1};
+function utilCalc(o){
+  var rows=[], total=0;
+  function put(key, name, vol, unit, tar, tarUnit, k, sum){
+    sum=r2k(sum); total+=sum;
+    rows.push({key:key, name:name, vol:vol, unit:unit, tar:tar, tarUnit:tarUnit, k:k, sum:sum});
+  }
+  var base={};
+  [['cold','Холодная вода','м³','₽/м³'],['hot','Горячая вода','м³','₽/м³']].forEach(function(s){
+    var r=o[s[0]], b=r.mode==='meter' ? r.vol : r.norm*o.persons;
+    base[s[0]]=b;
+    var k=(r.mode==='norm' && o.coef) ? UTIL_K[s[0]] : 1;
+    put(s[0], s[1], b, s[2], r.tar, s[3], k, b*k*r.tar);
+  });
+  put('sew','Водоотведение', base.cold+base.hot, 'м³', o.sew.tar, '₽/м³', 1, (base.cold+base.hot)*o.sew.tar);
+  [['el','Электроэнергия','кВт·ч','₽/кВт·ч'],['gas','Газ','м³','₽/м³']].forEach(function(s){
+    var r=o[s[0]], b=r.mode==='meter' ? r.vol : r.norm*o.persons;
+    var k=(r.mode==='norm' && o.coef) ? UTIL_K[s[0]] : 1;
+    put(s[0], s[1], b, s[2], r.tar, s[3], k, b*k*r.tar);
+  });
+  var gcal=o.area*o.heat.norm;
+  put('heat','Отопление', gcal, 'Гкал', o.heat.tar, '₽/Гкал', 1, gcal*o.heat.tar);
+  put('tko','Вывоз мусора (ТКО)', o.persons, 'чел.', o.tko.tar, '₽/чел.', 1, o.persons*o.tko.tar);
+  put('maint','Содержание жилья', o.area, 'кв. м', o.maint.tar, '₽/кв. м', 1, o.area*o.maint.tar);
+  put('cap','Капитальный ремонт', o.area, 'кв. м', o.cap.tar, '₽/кв. м', 1, o.area*o.cap.tar);
+  put('other','Прочее (домофон, антенна и др.)', 1, '', o.other, '₽', 1, o.other);
+  return {rows:rows, total:r2k(total), perM2:o.area>0 ? r2k(total/o.area) : 0, perPerson:o.persons>0 ? r2k(total/o.persons) : 0, year:r2k(total*12)};
+}
+
+/* ===== общий каркас страницы (версия для сайта): меню с поиском и сворачиванием, тема, подсказки, поля ввода ===== */
+(function(){
+  var sb=document.getElementById('sidebar');
+  if(!sb) return;
+  var titles=Array.prototype.slice.call(sb.querySelectorAll('.sidebar-title'));
+  var sections=titles.map(function(t){
+    var items=[], el=t.nextElementSibling;
+    while(el && !el.classList.contains('sidebar-title')){ items.push(el); el=el.nextElementSibling; }
+    return {title:t, items:items, collapsed:false};
+  });
+  var CKEY='nabor-sidebar-collapsed-v2';
+  var overrides={};
+  try{ overrides=JSON.parse(localStorage.getItem(CKEY)||'{}'); }catch(e){}
+  sections.forEach(function(s){
+    var key=s.title.textContent.trim();
+    var hasActive=s.items.some(function(it){ return it.classList && it.classList.contains('active'); });
+    s.collapsed = overrides.hasOwnProperty(key) ? !!overrides[key] : !hasActive;
+  });
+  var search=document.getElementById('sidebarSearch');
+  function query(){ return search ? search.value.trim().toLowerCase() : ''; }
+  function render(){
+    var q=query();
+    sections.forEach(function(s){
+      if(q){
+        var any=false;
+        s.items.forEach(function(it){
+          var ok=it.textContent.toLowerCase().indexOf(q)!==-1;
+          it.classList.toggle('sidebar-item-hidden', !ok);
+          if(ok) any=true;
+        });
+        s.title.classList.remove('collapsed');
+        s.title.style.display = any ? '' : 'none';
+      } else {
+        s.title.style.display='';
+        s.title.classList.toggle('collapsed', s.collapsed);
+        s.items.forEach(function(it){ it.classList.toggle('sidebar-item-hidden', s.collapsed); });
+      }
+    });
+  }
+  sections.forEach(function(s){
+    s.title.addEventListener('click', function(){
+      if(query()) return;
+      s.collapsed=!s.collapsed;
+      overrides[s.title.textContent.trim()]=s.collapsed;
+      try{ localStorage.setItem(CKEY, JSON.stringify(overrides)); }catch(e){}
+      render();
+    });
+  });
+  if(search){ search.addEventListener('input', render); }
+  render();
+})();
+
+var menuBtn=$('menuBtn'), backdrop=$('backdrop'), sidebarClose=$('sidebarClose');
+var navScrollY=0;
+function openNav(){
+  navScrollY=window.scrollY||window.pageYOffset||0;
+  document.body.style.top='-'+navScrollY+'px';
+  document.body.classList.add('nav-open');
+}
+function closeNav(){
+  if(!document.body.classList.contains('nav-open')) return;
+  document.body.classList.remove('nav-open');
+  document.body.style.top='';
+  window.scrollTo(0, navScrollY);
+}
+menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
+backdrop.addEventListener('click', closeNav);
+sidebarClose.addEventListener('click', closeNav);
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeNav(); closeModal(); } });
+
+try{ var savedTheme=localStorage.getItem('podschet-theme'); if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme); }catch(e){}
+$('themeToggle').addEventListener('click', function(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var next = cur==='dark' ? 'light' : (cur==='light' ? null : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+  if(next){ document.documentElement.setAttribute('data-theme', next); } else { document.documentElement.removeAttribute('data-theme'); }
+  try{ localStorage.setItem('podschet-theme', next || ''); }catch(e){}
+});
+
+var modalBackdrop=$('modalBackdrop'), modalTitle=$('modalTitle'), modalBody=$('modalBody');
+function openModal(t){ if(!t) return; modalTitle.textContent=t.title; modalBody.innerHTML=t.html; modalBackdrop.classList.add('open'); }
+function closeModal(){ modalBackdrop.classList.remove('open'); }
+document.querySelectorAll('.info-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal(TERMS[btn.dataset.term]); }); });
+$('modalClose').addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+
+function paintRange(el){
+  var min=parseFloat(el.min), max=parseFloat(el.max), val=parseFloat(el.value);
+  var p=Math.min(100,Math.max(0,(val-min)/(max-min)*100));
+  el.style.background='linear-gradient(to right, var(--accent) '+p+'%, var(--line) '+p+'%)';
+}
+/* Введённое вручную значение сохраняется точно: пока шаг ползунка 'any', значение не «прилипает».
+   Как только человек берётся за ползунок, прежний шаг возвращается. */
+function setRangeValue(rangeEl, num){
+  if(!rangeEl.dataset.step) rangeEl.dataset.step=rangeEl.getAttribute('step')||'1';
+  rangeEl.step='any'; rangeEl.value=num;
+}
+function makeEditable(rangeEl, valEl, min, max, formatDisplay, formatEdit){
+  rangeEl.dataset.step=rangeEl.getAttribute('step')||'1';
+  function tight(){ if(rangeEl.step==='any') rangeEl.step=rangeEl.dataset.step; }
+  rangeEl.addEventListener('pointerdown', tight);
+  rangeEl.addEventListener('keydown', tight);
+  function sync(){ valEl.value = formatDisplay(parseFloat(rangeEl.value)); paintRange(rangeEl); }
+  rangeEl.addEventListener('input', function(){ sync(); calc(); });
+  valEl.addEventListener('focus', function(){ valEl.value = formatEdit(parseFloat(rangeEl.value)); valEl.select(); });
+  function commit(){
+    var raw = valEl.value.replace(',', '.').replace(/[^0-9.\-]/g,'');
+    var num = parseFloat(raw);
+    if(isNaN(num)) num = parseFloat(rangeEl.value);
+    num = Math.min(max, Math.max(min, num));
+    setRangeValue(rangeEl, num); sync(); calc();
+  }
+  valEl.addEventListener('blur', commit);
+  valEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ valEl.blur(); } });
+  sync();
+}
+/* переключатель из кнопок: выбранное значение читается из data-v */
+function bindSeg(id, onChange){
+  var wrap=$(id), btns=wrap.querySelectorAll('button');
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active'); onChange(btn.dataset.v);
+    });
+  });
+}
+
+
+var TERMS={
+  pm:{title:'Прожиточный минимум на детей', html:'<p>В целом по России на 2026 год прожиточный минимум на детей — 18 371 ₽ в месяц. Региональные значения отличаются и пересматриваются, их можно найти на сайте правительства региона или в решении суда.</p><p>Твёрдые алименты обычно выражают в долях этой величины.</p>'},
+  share:{title:'Размер доли', html:'<p>По закону суд назначает 1/4 дохода на одного ребёнка, 1/3 на двоих и 1/2 на троих и более. Суд и сами родители могут определить другую долю, например 20% или 33%.</p><p>Общий размер удержаний из зарплаты не должен превышать 70%.</p>'}
+};
+var mode='share', incType='gross';
+var kids=$('kids'), inc=$('inc'), pct=$('pct'), pm=$('pm'), kpm=$('kpm'), mAl=$('mAl'), dFrom=$('dFrom'), dTo=$('dTo');
+function kidsF(v){ var n=Math.round(v); return n+' '+plural(n,'ребёнок','ребёнка','детей'); }
+function pctI(v){ return Math.round(v)+'%'; }
+function kF(v){ return dec(Math.round(v*100)/100,2)+' ПМ'; }
+function mn(x){ return money2(x)+' ₽'; }
+function row(i,k,v){ $('k'+i).textContent=k; $('v'+i).textContent=v; }
+makeEditable(kids,$('kidsVal'),1,8,kidsF,fmtInt);
+makeEditable(inc,$('incVal'),0,1500000,money,fmtInt);
+makeEditable(pct,$('pctVal'),1,70,pctI,fmtInt);
+makeEditable(pm,$('pmVal'),8000,40000,money,fmtInt);
+makeEditable(kpm,$('kpmVal'),0.25,5,kF,fmtDec);
+makeEditable(mAl,$('mAlVal'),1000,300000,money,fmtInt);
+bindSeg('modeToggle', function(v){ mode=v; calc(); });
+bindSeg('incType', function(v){ incType=v; calc(); });
+$('shareMode').addEventListener('change', calc);
+[dFrom,dTo].forEach(function(el){ el.addEventListener('input', calc); el.addEventListener('change', calc); });
+var now=new Date();
+dTo.value=toISO(now);
+dFrom.value=toISO(new Date(now.getFullYear(), now.getMonth(), now.getDate()-90));
+function fracText(n){ return n>=3 ? '1/2' : (n===2 ? '1/3' : '1/4'); }
+
+function calc(){
+  $('wKids').hidden=mode==='debt'; $('wShare').hidden=mode!=='share'; $('wFixed').hidden=mode!=='fixed'; $('wDebt').hidden=mode!=='debt';
+  $('pctWrap').hidden=$('shareMode').value!=='custom';
+  var n=Math.round(+kids.value), pill=$('oPill');
+  if(mode==='share'){
+    var custom=$('shareMode').value==='custom';
+    var A=alimony({inc:+inc.value, incType:incType, kids:n, pct:custom ? +pct.value : null});
+    $('oLabel').textContent='Алименты в месяц'; $('oMain').textContent=mn(A.sum);
+    pill.className='pill neutral'; pill.textContent=custom ? Math.round(+pct.value)+'% дохода' : fracText(n)+' дохода';
+    $('pA').textContent=n>1 ? 'На каждого ребёнка' : 'На ребёнка'; $('oA').textContent=mn(A.perChild);
+    $('pB').textContent='Остаётся плательщику'; $('oB').textContent=mn(A.left);
+    row(1, incType==='net' ? 'Доход на руки' : 'Доход после НДФЛ', mn(A.net));
+    row(2,'Доля', dec(A.share*100,1)+'%');
+    row(3,'Предел удержаний, 70%', mn(A.cap70));
+    row(4,'Алименты за год', mn(A.sum*12));
+    if(A.sum>A.cap70){ pill.className='pill bad'; pill.textContent='Больше предела удержаний 70%'; }
+  } else if(mode==='fixed'){
+    var F=alimFixed(+pm.value, +kpm.value, n);
+    $('oLabel').textContent='Алименты в месяц'; $('oMain').textContent=mn(F.total);
+    pill.className='pill neutral'; pill.textContent=kF(+kpm.value)+' на каждого ребёнка';
+    $('pA').textContent='На одного ребёнка'; $('oA').textContent=mn(F.per);
+    $('pB').textContent='Прожиточный минимум'; $('oB').textContent=money(+pm.value);
+    row(1,'Детей', String(n));
+    row(2,'Размер на каждого, ПМ', kF(+kpm.value));
+    row(3,'Всего за год', mn(F.total*12));
+    row(4,'Прожиточный минимум на ребёнка', money(+pm.value));
+  } else {
+    var ok=dFrom.value && dTo.value;
+    if(!ok){ $('oMain').textContent='—'; pill.className='pill neutral'; pill.textContent='Укажите обе даты'; return; }
+    var D=alimDebt({amount:+mAl.value, first:dn(dFrom.value), to:dn(dTo.value)});
+    $('oLabel').textContent='Долг с неустойкой'; $('oMain').textContent=mn(D.total);
+    pill.className=D.months===0 ? 'pill good' : 'pill neutral';
+    pill.textContent=D.months===0 ? 'Просроченных платежей нет' : D.months+' '+plural(D.months,'платёж','платежа','платежей')+' не оплачено';
+    if(D.capped){ pill.className='pill bad'; pill.textContent='Период слишком большой: посчитаны первые 600 платежей'; }
+    $('pA').textContent='Долг'; $('oA').textContent=mn(D.debt);
+    $('pB').textContent='Неустойка'; $('oB').textContent=mn(D.pen);
+    row(1,'Платежей не внесено', String(D.months));
+    row(2,'Неустойка в день', D.old>0 ? '0,1% (до 10.08.2018 — 0,5%)' : '0,1% от долга');
+    row(3,'Неустойка от долга', D.debt>0 ? dec(D.pen/D.debt*100,1)+'%' : '—');
+    row(4,'Самая давняя просрочка', D.months>0 ? daysText(D.rows[0].days) : '—');
+  }
+}
+calc();
+
+})();
+</script>
+<script src="cookie-consent.js" defer></script>
+</body>
+</html>

@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>НаборНаВсе — финансовые калькуляторы и конвертеры</title>
+<meta name="description" content="Бесплатные калькуляторы и конвертеры: кредиты и ипотека, налоги и зарплата, даты, единицы измерения, изображения и видео — прямо в браузере, без регистрации.">
+<link rel="canonical" href="https://nabornavse.ru/">
 <style>
   @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
   @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
@@ -96,9 +98,14 @@
   <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
   <a href="kreditny-kalkulyator.html">Кредитный калькулятор</a>
   <a href="avtokredit-calculator.html">Автокредит</a>
-  <a href="psk-calculator.html">Полная стоимость кредита (ПСК)</a>
+  <a href="pereplata-po-kreditu.html">Переплата по кредиту</a>
+  <a href="annuitetnyj-i-differentsirovannyj-platezh.html">Аннуитетный и дифференцированный платёж</a>
+  <a href="grafik-platezhey.html">График платежей</a>
+  <a href="refinansirovanie.html">Рефинансирование</a>
+  <a href="ipoteka-s-materinskim-kapitalom.html">Ипотека с маткапиталом</a>
+  <a href="kreditnaya-karta-lgotnyj-period.html">Кредитная карта и льготный период</a>
+  <a href="psk-kredita.html">Полная стоимость кредита (ПСК)</a>
   <a href="dolgovaya-nagruzka.html">Долговая нагрузка (ПДН)</a>
-  <span class="soon">Рефинансирование<small>скоро</small></span>
   <p class="sidebar-title">Вклады и накопления</p>
   <a href="vklad-protsenty.html">Вклад с капитализацией</a>
   <a href="nakopleniya-na-tsel.html">Накопления на цель</a>
@@ -111,8 +118,22 @@
   <a href="otpusknye-calculator.html">Калькулятор отпускных</a>
   <a href="bolnichny-calculator.html">Калькулятор больничного</a>
   <a href="kompensatsiya-otpuska.html">Компенсация за неиспользованный отпуск</a>
+  <a href="kompensatsiya-pri-uvolnenii.html">Компенсация при увольнении</a>
   <a href="nalogovy-vychet-lechenie.html">Налоговый вычет за лечение</a>
+  <a href="nalogovy-vychet-obuchenie.html">Налоговый вычет за обучение</a>
   <a href="nalogovy-vychet-ipoteka.html">Налоговый вычет за ипотеку</a>
+  <a href="nalogovy-vychet-pokupka-kvartiry.html">Налоговый вычет за покупку квартиры</a>
+  <a href="nds-kalkulyator.html">Калькулятор НДС</a>
+  <a href="nalog-s-prodazhi-kvartiry-avto.html">Налог с продажи квартиры или авто</a>
+  <a href="imushchestvennye-nalogi.html">Транспортный, земельный, имущественный налог</a>
+  <a href="nalogi-samozanyatyh-ip.html">Налоги для самозанятых и ИП</a>
+  <a href="vychet-iis.html">Налоговый вычет по ИИС</a>
+  <a href="posobie-po-beremennosti-i-rodam.html">Пособие по беременности и родам</a>
+  <a href="strahovoy-stazh.html">Страховой стаж</a>
+  <a href="goshlina-kalkulyator.html">Госпошлина</a>
+  <a href="peni-zhkh-i-nalogi.html">Пени по ЖКХ и налогам</a>
+  <a href="alimenty-kalkulyator.html">Алименты</a>
+  <a href="kommunalnye-platezhi-kalkulyator.html">Коммунальные платежи</a>
   <p class="sidebar-title">Даты и проценты</p>
   <a href="protsenty-kalkulyator.html">Калькулятор процентов</a>
   <a href="dni-mezhdu-datami.html">Дни между датами</a>
@@ -137,6 +158,11 @@
   <a href="konverter-materialov.html">Площадь в материалы для ремонта</a>
   <a href="edinitsy-izmereniya.html">Вес, объём, площадь, скорость</a>
   <a href="davlenie-energiya-dannye.html">Давление, энергия, данные</a>
+  <a href="razmery-odezhdy-obuvi.html">Размеры одежды и обуви</a>
+  <a href="kulinarnye-mery.html">Кулинарные меры</a>
+  <a href="dyuymy-v-santimetry.html">Дюймы в сантиметры</a>
+  <a href="mili-v-kilometry.html">Мили в километры</a>
+  <a href="funty-v-kilogrammy.html">Фунты в килограммы</a>
   <p class="sidebar-title">Текст</p>
   <a href="schetchik-simvolov.html">Счётчик символов и слов</a>
   <a href="smena-registra-translit.html">Смена регистра и транслитерация</a>
@@ -181,13 +207,31 @@
         <h3>Автокредит</h3>
         <p>Платёж и переплата по кредиту на автомобиль.</p>
       </a>
-      <div class="tool-card soon"><h3>Переплата по кредиту</h3><p>Сколько реально отдадите сверх тела кредита.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Аннуитетный и дифференцированный платёж</h3><p>Два вида платежа отдельными разборами.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>График платежей со скачиванием</h3><p>Помесячный график — можно сохранить файлом.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Рефинансирование</h3><p>Сравнение текущего кредита с новой ставкой.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Ипотека с материнским капиталом</h3><p>На какую сумму можно рассчитывать с учётом капитала.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Кредитная карта и льготный период</h3><p>Проценты и беспроцентный период по карте.</p><span class="tag-soon">скоро</span></div>
-      <a class="tool-card" href="psk-calculator.html">
+      <a class="tool-card" href="pereplata-po-kreditu.html">
+        <h3>Переплата по кредиту</h3>
+        <p>Сколько реально отдадите сверх тела кредита.</p>
+      </a>
+      <a class="tool-card" href="annuitetnyj-i-differentsirovannyj-platezh.html">
+        <h3>Аннуитетный и дифференцированный платёж</h3>
+        <p>Сравнение двух схем: платёж, переплата и график.</p>
+      </a>
+      <a class="tool-card" href="grafik-platezhey.html">
+        <h3>График платежей со скачиванием</h3>
+        <p>Помесячный график — можно сохранить файлом.</p>
+      </a>
+      <a class="tool-card" href="refinansirovanie.html">
+        <h3>Рефинансирование</h3>
+        <p>Сравнение текущего кредита с новой ставкой.</p>
+      </a>
+      <a class="tool-card" href="ipoteka-s-materinskim-kapitalom.html">
+        <h3>Ипотека с материнским капиталом</h3>
+        <p>Капитал в первый взнос или на досрочное погашение — что выгоднее.</p>
+      </a>
+      <a class="tool-card" href="kreditnaya-karta-lgotnyj-period.html">
+        <h3>Кредитная карта и льготный период</h3>
+        <p>Проценты и беспроцентный период по карте.</p>
+      </a>
+      <a class="tool-card" href="psk-kredita.html">
         <h3>Полная стоимость кредита (ПСК)</h3>
         <p>Реальная ставка с учётом всех комиссий.</p>
       </a>
@@ -239,7 +283,10 @@
         <h3>Больничный</h3>
         <p>Выплата по больничному листу по стажу.</p>
       </a>
-      <div class="tool-card soon"><h3>Компенсация при увольнении</h3><p>Выходное пособие и отпускные по ТК РФ.</p><span class="tag-soon">скоро</span></div>
+      <a class="tool-card" href="kompensatsiya-pri-uvolnenii.html">
+        <h3>Компенсация при увольнении</h3>
+        <p>Выходное пособие, компенсация за отпуск и НДФЛ.</p>
+      </a>
       <a class="tool-card" href="kompensatsiya-otpuska.html">
         <h3>Компенсация за неиспользованный отпуск</h3>
         <p>Сколько заплатят за неотгуленные дни.</p>
@@ -248,23 +295,62 @@
         <h3>Вычет за лечение</h3>
         <p>Налоговый вычет за медицинские услуги и лекарства.</p>
       </a>
-      <div class="tool-card soon"><h3>Вычет за обучение</h3><p>Налоговый вычет за своё или детское образование.</p><span class="tag-soon">скоро</span></div>
+      <a class="tool-card" href="nalogovy-vychet-obuchenie.html">
+        <h3>Вычет за обучение</h3>
+        <p>Налоговый вычет за своё или детское образование.</p>
+      </a>
       <a class="tool-card" href="nalogovy-vychet-ipoteka.html">
         <h3>Вычет по ипотечным процентам</h3>
         <p>Возврат НДФЛ с процентов, уплаченных банку.</p>
       </a>
-      <div class="tool-card soon"><h3>Вычет за покупку квартиры</h3><p>Имущественный вычет при покупке жилья.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>НДС</h3><p>Выделить или начислить НДС на сумму.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Налог с продажи квартиры или авто</h3><p>Нужно ли платить и сколько после продажи.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Транспортный, земельный, имущественный налог</h3><p>Расчёт по трём основным имущественным налогам.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Налоги для самозанятых и ИП</h3><p>НПД, УСН и патент — сколько платить.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Вычет по ИИС</h3><p>Налоговый вычет на индивидуальный инвестсчёт.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Пособие по беременности и родам</h3><p>Расчёт декретной выплаты.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Страховой стаж</h3><p>Подсчёт стажа по трудовой книжке.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Госпошлина</h3><p>Размер пошлины для типовых ситуаций.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Пени по ЖКХ и налогам</h3><p>Пени и проценты по ст. 395 ГК РФ.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Алименты</h3><p>Процент от дохода на одного и более детей.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Коммунальные платежи</h3><p>Расчёт платежей по тарифам и нормативам.</p><span class="tag-soon">скоро</span></div>
+      <a class="tool-card" href="nalogovy-vychet-pokupka-kvartiry.html">
+        <h3>Вычет за покупку квартиры</h3>
+        <p>Возврат до 260 000 ₽ и график по годам.</p>
+      </a>
+      <a class="tool-card" href="nds-kalkulyator.html">
+        <h3>НДС</h3>
+        <p>Выделить НДС из суммы или начислить сверху.</p>
+      </a>
+      <a class="tool-card" href="nalog-s-prodazhi-kvartiry-avto.html">
+        <h3>Налог с продажи квартиры или авто</h3>
+        <p>Нужно ли платить и сколько после продажи.</p>
+      </a>
+      <a class="tool-card" href="imushchestvennye-nalogi.html">
+        <h3>Транспортный, земельный, имущественный налог</h3>
+        <p>Расчёт по трём основным имущественным налогам.</p>
+      </a>
+      <a class="tool-card" href="nalogi-samozanyatyh-ip.html">
+        <h3>Налоги для самозанятых и ИП</h3>
+        <p>НПД, УСН и патент: сколько платить и что выгоднее.</p>
+      </a>
+      <a class="tool-card" href="vychet-iis.html">
+        <h3>Вычет по ИИС</h3>
+        <p>Налоговый вычет на индивидуальный инвестсчёт.</p>
+      </a>
+      <a class="tool-card" href="posobie-po-beremennosti-i-rodam.html">
+        <h3>Пособие по беременности и родам</h3>
+        <p>Декретная выплата за 140, 156 или 194 дня.</p>
+      </a>
+      <a class="tool-card" href="strahovoy-stazh.html">
+        <h3>Страховой стаж</h3>
+        <p>Стаж по периодам работы и оплата больничного.</p>
+      </a>
+      <a class="tool-card" href="goshlina-kalkulyator.html">
+        <h3>Госпошлина</h3>
+        <p>Пошлина за иск, развод и жалобу в суд и в арбитраж.</p>
+      </a>
+      <a class="tool-card" href="peni-zhkh-i-nalogi.html">
+        <h3>Пени по ЖКХ и налогам</h3>
+        <p>Пени по ЖКУ и налогам, проценты по ст. 395 ГК РФ.</p>
+      </a>
+      <a class="tool-card" href="alimenty-kalkulyator.html">
+        <h3>Алименты</h3>
+        <p>Доля от дохода на детей, твёрдая сумма, долг и неустойка.</p>
+      </a>
+      <a class="tool-card" href="kommunalnye-platezhi-kalkulyator.html">
+        <h3>Коммунальные платежи</h3>
+        <p>Квартплата по счётчикам и нормативам с коэффициентом.</p>
+      </a>
     </div>
 
     <p class="section-title">Даты, числа и проценты</p>
@@ -341,11 +427,26 @@
         <h3>Давление, энергия, данные</h3>
         <p>Паскали/атмосферы, джоули/калории, МБ/ГБ.</p>
       </a>
-      <div class="tool-card soon"><h3>Размеры одежды и обуви</h3><p>Перевод между российскими и зарубежными размерами.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Кулинарные меры</h3><p>Стаканы и ложки в граммы и миллилитры.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Дюймы в сантиметры</h3><p>Отдельная узкая страница под частый запрос.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Мили в километры</h3><p>Отдельная узкая страница под частый запрос.</p><span class="tag-soon">скоро</span></div>
-      <div class="tool-card soon"><h3>Фунты в килограммы</h3><p>Отдельная узкая страница под частый запрос.</p><span class="tag-soon">скоро</span></div>
+      <a class="tool-card" href="razmery-odezhdy-obuvi.html">
+        <h3>Размеры одежды и обуви</h3>
+        <p>Перевод между российскими и зарубежными размерами.</p>
+      </a>
+      <a class="tool-card" href="kulinarnye-mery.html">
+        <h3>Кулинарные меры</h3>
+        <p>Стаканы и ложки в граммы и миллилитры.</p>
+      </a>
+      <a class="tool-card" href="dyuymy-v-santimetry.html">
+        <h3>Дюймы в сантиметры</h3>
+        <p>Дюймы, футы и дроби в сантиметры и обратно.</p>
+      </a>
+      <a class="tool-card" href="mili-v-kilometry.html">
+        <h3>Мили в километры</h3>
+        <p>Мили, морские мили, мили в час и темп бега.</p>
+      </a>
+      <a class="tool-card" href="funty-v-kilogrammy.html">
+        <h3>Фунты в килограммы</h3>
+        <p>Фунты, унции и стоуны в килограммы и обратно.</p>
+      </a>
       <a class="tool-card" href="heic-v-jpg.html">
         <h3>HEIC в JPG</h3>
         <p>Конвертация фото с iPhone в привычный формат.</p>

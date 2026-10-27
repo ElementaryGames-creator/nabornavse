@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ипотека с материнским капиталом — НаборНаВсе</title>
+<meta name="description" content="Расчёт ипотеки с материнским капиталом: платёж, переплата и сравнение вклада капитала в первый взнос с досрочным погашением.">
+<link rel="canonical" href="https://nabornavse.ru/ipoteka-s-materinskim-kapitalom.html">
+<style>
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/inter-400.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/inter-500.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/inter-600.woff2') format('woff2');}
+  @font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/inter-700.woff2') format('woff2');}
+  :root{
+    --bg:#F5F4F1; --surface:#FFFFFF; --ink:#2B2E33; --ink-soft:#6B6F75; --ink-faint:#9A9DA2;
+    --line:#E3E2DD; --accent:#5E6A8C; --accent-soft:#EAEBF1; --accent-2:#A3815C; --accent-2-soft:#F0E8DD;
+    --radius:10px; --font-body:'Inter', -apple-system, Segoe UI, Roboto, sans-serif;
+    --sidebar-w:270px;
+    --shadow:0 1px 2px rgba(20,24,30,.03), 0 10px 24px -16px rgba(20,24,30,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+      --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1C1F; --surface:#232629; --ink:#E7E6E3; --ink-soft:#A5A8AC; --ink-faint:#6E7175;
+    --line:#303338; --accent:#9AA6C9; --accent-soft:#232738; --accent-2:#C3A47D; --accent-2-soft:#2E2821;
+    --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -16px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow-wrap:anywhere;}
+  .wrap{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--line);box-shadow:var(--shadow);
+    transform:translateX(-100%);transition:transform .28s ease;z-index:30;padding:calc(1.2rem + env(safe-area-inset-top,0px)) 1.3rem 1.3rem;overflow-y:auto;overscroll-behavior:contain;}
+  body.nav-open .sidebar{transform:translateX(0);}
+  body.nav-open{position:fixed;left:0;right:0;overflow:hidden;}
+  .sidebar-home{font-weight:700;color:var(--ink);margin-bottom:.3rem;}
+  .sidebar-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.3rem 0 .5rem;}
+  .sidebar-title:first-child{margin-top:0;}
+  .sidebar a, .sidebar span.soon{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:7px;font-size:14.5px;text-decoration:none;color:var(--ink-soft);margin-bottom:2px;}
+  .sidebar a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+  .sidebar a:hover{background:var(--bg);}
+  .sidebar span.soon{color:var(--ink-faint);}
+  .sidebar span.soon small{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;}
+  .sidebar-search{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.5rem .7rem;font-family:var(--font-body);font-size:13.5px;color:var(--ink);margin:.2rem 0 1rem;}
+  .sidebar-search::placeholder{color:var(--ink-faint);}
+  .sidebar-search:focus{outline:none;border-color:var(--accent);}
+  .sidebar-title{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:.4rem;}
+  .sidebar-title::after{content:'\25BE';font-size:16px;line-height:1;color:var(--ink-soft);flex-shrink:0;}
+  .sidebar-title.collapsed::after{content:'\25B8';}
+  .sidebar-item-hidden{display:none !important;}
+  .sidebar-no-match{font-size:12.5px;color:var(--ink-faint);padding:.3rem .6rem;display:none;}
+  .backdrop{position:fixed;inset:0;background:rgba(20,20,20,.25);opacity:0;pointer-events:none;transition:opacity .28s;z-index:25;}
+  body.nav-open .backdrop{opacity:1;pointer-events:auto;}
+
+  .page{min-height:100vh;}
+
+  .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);}
+  .site-header-inner{max-width:900px;margin:0 auto;padding:.9rem 1.5rem;display:flex;align-items:center;gap:1rem;}
+  .menu-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .logo{font-weight:700;font-size:17px;color:var(--ink);text-decoration:none;white-space:nowrap;flex:1;}
+  .theme-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+
+  header.page-head{padding:1.3rem 0 1.1rem;}
+  .brand{font-size:12px;color:var(--ink-faint);margin:0 0 .4rem;}
+  h1{font-weight:700;font-size:clamp(20px,3vw,26px);line-height:1.2;margin:0 0 .35rem;max-width:26ch;}
+  .lede{color:var(--ink-soft);font-size:13.5px;line-height:1.45;max-width:58ch;margin:0;}
+
+  .panel{display:grid;grid-template-columns:1.1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+  @media (max-width:720px){ .panel{grid-template-columns:1fr;} }
+  .inputs{padding:1.3rem 1.3rem;border-right:1px solid var(--line);min-width:0;}
+  @media (max-width:720px){ .inputs{border-right:none;border-bottom:1px solid var(--line);} }
+
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px;margin-bottom:1rem;}
+  .seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font-family:var(--font-body);font-size:13px;padding:.5rem;border-radius:6px;cursor:pointer;}
+  .seg button.active{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+
+  .field{margin-bottom:.6rem;background:var(--bg);border-radius:10px;padding:.8rem .9rem .85rem;}
+  .field:last-child{margin-bottom:0;}
+  .field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem;gap:8px;}
+  .field-top label{font-size:13.5px;color:var(--ink-soft);}
+  .val-input{font-family:var(--font-body);font-weight:600;font-size:15.5px;text-align:right;background:transparent;
+    border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);width:13ch;padding:2px 2px;
+    font-variant-numeric:tabular-nums;cursor:text;}
+  .val-input:hover{border-bottom-color:var(--accent);}
+  .val-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--line);border-radius:3px;outline:none;margin:0;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .menu-btn:hover, .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .seg button:hover:not(.active){color:var(--ink);}
+  .info-btn:active, .menu-btn:active, .theme-btn:active{transform:scale(.94);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);}
+  .range-labels{display:flex;justify-content:space-between;margin-top:.3rem;}
+  .range-labels span{font-size:11.5px;color:var(--ink-faint);}
+  .derived{font-size:12.5px;color:var(--ink-soft);margin-top:.5rem;}
+  .derived b{color:var(--ink);font-variant-numeric:tabular-nums;}
+  .hint{font-size:11px;color:var(--ink-faint);margin:.6rem 0 0;}
+
+  .results{padding:1.3rem 1.3rem;background:var(--accent-soft);min-width:0;}
+  .panel-eyebrow{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:0 0 1.3rem;}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .result-label{font-size:12.5px;color:var(--ink-soft);margin:0 0 .3rem;}
+  .result-big{font-weight:700;font-size:clamp(32px,4.6vw,40px);line-height:1;margin:0 0 1.5rem;font-variant-numeric:tabular-nums;}
+  .result-big small{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:6px;}
+  .result-pair{display:flex;gap:1.6rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+  .result-pair div p:first-child{font-size:12px;color:var(--ink-soft);margin:0 0 .25rem;}
+  .result-pair div p:last-child{font-weight:700;font-size:22px;margin:0;font-variant-numeric:tabular-nums;}
+
+  .bar{height:9px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:.55rem;background:var(--line);}
+  .bar-principal{background:var(--accent);height:100%;}
+  .bar-interest{background:var(--accent-2);height:100%;}
+  .bar-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-bottom:1.6rem;}
+  .bar-legend .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px;}
+
+  .stat-row{display:flex;justify-content:space-between;padding:.65rem 0;border-top:1px solid var(--line);gap:10px;}
+  .stat-row:first-of-type{border-top:none;}
+  .stat-row .k{font-size:13px;color:var(--ink-soft);}
+  .stat-row .v{font-size:14px;font-variant-numeric:tabular-nums;font-weight:500;text-align:right;}
+
+  article{max-width:64ch;margin:2rem auto 0;padding:1.7rem 0 2.2rem;border-top:1px solid var(--line);}
+  article h2{font-weight:700;font-size:20px;margin:0 0 .8rem;}
+  article h2 + p{margin-top:0;}
+  article h3{font-size:15px;font-weight:600;margin:1.6rem 0 .5rem;}
+  article p{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;}
+  article ul{color:var(--ink-soft);font-size:14.5px;line-height:1.7;margin:0 0 1rem;padding-left:1.3rem;}
+  article li{margin-bottom:.3rem;}
+  article strong{color:var(--ink);font-weight:600;}
+  .disclaimer{font-size:12.5px;color:var(--ink-faint);margin-top:1.8rem;}
+
+  .site-footer{border-top:1px solid var(--line);padding:1.5rem 0 calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:1rem;}
+  .site-footer p{font-size:12.5px;color:var(--ink-faint);margin:0;}
+
+  @media (max-width:640px){
+    .sidebar{width:84vw;max-width:300px;}
+  }
+
+  .label-row{display:flex;align-items:center;margin-bottom:.5rem;}
+  .label-row label{font-size:13.5px;color:var(--ink-soft);}
+  .info-btn{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;
+    border:1px solid var(--ink-faint);color:var(--ink-faint);background:transparent;font-size:11px;cursor:pointer;
+    margin-left:6px;flex-shrink:0;line-height:1;padding:0;}
+  .info-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,17,20,.4);opacity:0;pointer-events:none;transition:opacity .2s;
+    z-index:50;display:flex;align-items:center;justify-content:center;padding:1.2rem;}
+  .modal-backdrop.open{opacity:1;pointer-events:auto;}
+  .modal{background:var(--surface);border-radius:12px;max-width:420px;width:100%;padding:1.5rem 1.5rem 1.3rem;box-shadow:0 20px 60px -20px rgba(0,0,0,.35);
+    border:1px solid var(--line);transform:translateY(8px);transition:transform .2s;}
+  .modal-backdrop.open .modal{transform:translateY(0);}
+  .modal h3{margin:0 0 .7rem;font-size:16px;}
+  .modal p{margin:0 0 .6rem;color:var(--ink-soft);font-size:13.5px;line-height:1.6;}
+  .modal-close{margin-top:.4rem;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+    padding:.45rem 1rem;border-radius:7px;font-size:13px;cursor:pointer;}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:.7rem .9rem;margin-bottom:.6rem;}
+  .toggle-row label{font-size:13.5px;color:var(--ink-soft);}
+  .switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch-track{position:absolute;cursor:pointer;inset:0;background:var(--line);border-radius:22px;transition:.2s;}
+  .switch-track:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:var(--surface);border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+  .switch input:checked + .switch-track{background:var(--accent);}
+  .switch input:checked + .switch-track:before{transform:translateX(16px);}
+
+  .zone-badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:.35rem .7rem;border-radius:20px;margin-bottom:1rem;}
+  .zone-ok{background:#E3F0E6;color:#2E7D43;}
+  .zone-warn{background:#FBF0D9;color:#9A6B10;}
+  .zone-bad{background:#FADADA;color:#A23636;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .zone-ok{background:#1E3324;color:#7BC893;}
+    :root:not([data-theme="light"]) .zone-warn{background:#3A2E12;color:#E3B655;}
+    :root:not([data-theme="light"]) .zone-bad{background:#3A1E1E;color:#E38989;}
+  }
+  :root[data-theme="dark"] .zone-ok{background:#1E3324;color:#7BC893;}
+  :root[data-theme="dark"] .zone-warn{background:#3A2E12;color:#E3B655;}
+  :root[data-theme="dark"] .zone-bad{background:#3A1E1E;color:#E38989;}
+
+
+
+
+  /* ===== дополнения для страниц раздела «Кредиты и ипотека» ===== */
+  :root{ --good:#4A7A5C; --good-soft:#E6F0E9; --bad:#A5554B; --bad-soft:#F5E7E4; --neutral-soft:#EDECE8; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ color-scheme:dark; --good:#86B99A; --good-soft:#1F2B24; --bad:#D68F85; --bad-soft:#322320; --neutral-soft:#2A2D31; }
+  }
+  :root[data-theme="dark"]{ color-scheme:dark; --good:#86B99A; --good-soft:#1F2B24; --bad:#D68F85; --bad-soft:#322320; --neutral-soft:#2A2D31; }
+
+  .section-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:1.2rem 0 .7rem;}
+  .section-label:first-of-type{margin-top:0;}
+  .panel-eyebrow.spaced{margin-top:1.3rem;}
+
+  .pill{display:inline-block;padding:.18rem .65rem;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--line);margin:0 0 1.2rem;}
+  .pill.good{color:var(--good);border-color:var(--good);background:var(--good-soft);}
+  .pill.bad{color:var(--bad);border-color:var(--bad);background:var(--bad-soft);}
+  .pill.neutral{color:var(--ink-soft);background:var(--neutral-soft);}
+  .note{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:0 0 1.1rem;}
+
+  .cmpbar{margin-bottom:.9rem;}
+  .cmpbar .row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--ink-soft);margin-bottom:.3rem;}
+  .cmpbar .row b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;}
+  .cmpbar .track{height:9px;background:var(--line);border-radius:6px;overflow:hidden;}
+  .cmpbar .fill{height:100%;border-radius:6px;}
+  .cmpbar .fill.a{background:var(--accent-2);}
+  .cmpbar .fill.b{background:var(--accent);}
+  .bar-third{background:var(--ink-faint);height:100%;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:.6rem;}
+  .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:.28rem .75rem;font-family:var(--font-body);font-size:12px;cursor:pointer;}
+  .chip:hover{border-color:var(--accent);color:var(--accent);}
+
+  .date-input{font-family:var(--font-body);font-weight:600;font-size:14.5px;background:transparent;border:none;border-bottom:1.5px dashed var(--ink-faint);color:var(--ink);padding:2px 2px;cursor:text;font-variant-numeric:tabular-nums;}
+  .date-input:hover{border-bottom-color:var(--accent);}
+  .date-input:focus{outline:none;border-bottom:1.5px solid var(--accent);background:var(--accent-soft);border-radius:4px 4px 0 0;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:1.2rem;overflow:hidden;min-width:0;}
+  .card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.7rem 1rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line);}
+  .card-head h2{font-size:15px;font-weight:600;margin:0;}
+  .card-head .sub{font-size:12.5px;color:var(--ink-faint);margin:.2rem 0 0;}
+  .head-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;}
+  .head-actions .seg{margin-bottom:0;}
+  .head-actions .seg button{padding:.4rem .8rem;}
+  .btn{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:.5rem .95rem;border-radius:8px;font-family:var(--font-body);font-size:13px;cursor:pointer;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn:active{transform:scale(.97);}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);}
+  .btn.primary:hover{color:var(--surface);opacity:.9;}
+  .save-status{font-size:12.5px;color:var(--ink-soft);margin:0;padding:.7rem 1.2rem;border-top:1px solid var(--line);min-height:2.4rem;}
+
+  .tbl-scroll{overflow:auto;max-height:430px;}
+  .tbl-wide{overflow-x:auto;}
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;}
+  table.tbl.min{min-width:540px;}
+  table.tbl th{background:var(--surface);color:var(--ink-soft);font-weight:600;font-size:12px;text-align:right;padding:.65rem .85rem;border-bottom:1px solid var(--line);white-space:nowrap;}
+  table.sched th{position:sticky;top:0;z-index:1;}
+  table.tbl td{padding:.5rem .85rem;border-bottom:1px solid var(--line);text-align:right;color:var(--ink);white-space:nowrap;}
+  table.tbl th:first-child, table.tbl td:first-child{text-align:left;}
+  table.tbl tbody tr:hover td{background:var(--bg);}
+  table.tbl tr.cur td{background:var(--accent-soft);font-weight:600;}
+  table.tbl tfoot td{font-weight:600;border-top:1px solid var(--line);background:var(--bg);}
+  table.tbl td.lbl{color:var(--ink-soft);font-weight:400;white-space:normal;}
+  table.tbl td.hl{color:var(--accent);font-weight:600;}
+
+  .chart-box{padding:1rem 1.2rem 1.1rem;}
+  .chart-box svg{display:block;width:100%;height:auto;overflow:visible;}
+  .chart-box svg text{font-family:var(--font-body);font-size:11px;fill:var(--ink-faint);}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;font-size:12.5px;color:var(--ink-soft);margin:0 0 .6rem;}
+  .chart-legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1.2rem;}
+  @media (max-width:640px){ .two-col{grid-template-columns:1fr;} }
+  .two-col .card{margin-top:0;padding:1.1rem 1.2rem;}
+  .two-col h3{margin:0 0 .6rem;font-size:14.5px;font-weight:600;}
+  .two-col ul{margin:0;padding-left:1.1rem;color:var(--ink-soft);font-size:13.5px;line-height:1.6;}
+  .two-col li{margin-bottom:.3rem;}
+
+  .seg.three button{font-size:12.5px;padding:.5rem .3rem;}
+  .field .seg{margin:.2rem 0 0;}
+  .related{font-size:13.5px;color:var(--ink-soft);line-height:1.7;margin:1.4rem 0 0;}
+  .related a, article a{color:var(--accent);text-decoration:underline;text-underline-offset:2px;}
+  article ul{margin:0 0 1rem;padding-left:1.2rem;color:var(--ink-soft);font-size:14.5px;line-height:1.7;}
+  article .formula{display:block;background:var(--accent-soft);border-radius:8px;padding:.7rem 1rem;color:var(--ink);font-size:14px;margin:0 0 1rem;overflow-x:auto;}
+  .result-big.mid{font-size:clamp(26px,3.8vw,32px);}
+  .stat-row .v.good{color:var(--good);} .stat-row .v.bad{color:var(--bad);}
+
+  h1{max-width:28ch;}
+  .head-actions .seg button{white-space:nowrap;}
+  .head-actions .btn{white-space:nowrap;}
+  .field-top label{min-width:0;}
+  .seg button, .seg4 button{overflow-wrap:normal;word-break:normal;}
+  @media (max-width:480px){ .seg button{font-size:12px;padding-inline:.25rem;} }
+
+  /* ===== дополнения для страниц раздела «Налоги и работа» ===== */
+  [hidden]{display:none !important;}
+  .chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600;}
+  .sel, .num-in{width:100%;font-family:var(--font-body);font-size:14.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.6rem .7rem;}
+  .sel:focus, .num-in:focus{outline:none;border-color:var(--accent);}
+  .num-in{font-weight:600;font-variant-numeric:tabular-nums;}
+  .field .sel, .field .num-in{margin-top:.15rem;}
+  .toggle-row{gap:12px;}
+  .toggle-row > label:first-child{min-width:0;}
+  .rate-custom{display:flex;align-items:center;gap:8px;margin-top:.7rem;font-size:13px;color:var(--ink-soft);}
+  .rate-custom .num-in{width:7.5ch;padding:.35rem .5rem;text-align:right;}
+  .stat-row .v{white-space:nowrap;}
+  .stat-row .k{min-width:0;}
+  table.tbl.compact th, table.tbl.compact td{overflow-wrap:normal;word-break:normal;}
+  @media (max-width:480px){ table.tbl.compact{font-size:11.5px;} table.tbl.compact th, table.tbl.compact td{padding:.5rem .3rem;} table.tbl.compact th:first-child, table.tbl.compact td:first-child{padding-left:.8rem;} table.tbl.compact th:last-child, table.tbl.compact td:last-child{padding-right:.8rem;} }
+  .period{display:grid;grid-template-columns:auto 1fr auto;gap:.45rem .6rem;align-items:center;background:var(--bg);border-radius:10px;padding:.7rem .8rem;margin-bottom:.5rem;}
+  .period label{font-size:13px;color:var(--ink-soft);}
+  .period .date-input{width:100%;min-width:0;}
+  .period .btn.del{padding:.35rem .6rem;line-height:1;}
+  table.tbl.compact td:first-child{white-space:normal;}
+
+  /* ===== блоки услуг на странице коммунальных платежей ===== */
+  .svc{background:var(--bg);border-radius:10px;padding:.7rem .8rem;margin-bottom:.6rem;}
+  .svc-head{display:flex;flex-direction:column;align-items:stretch;gap:.45rem;margin-bottom:.55rem;}
+  .svc-head h3{margin:0;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .svc-head .seg{margin:0;flex:none;}
+  .svc-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,8.5rem);gap:.45rem .7rem;align-items:center;}
+  .svc-grid label{font-size:12.5px;color:var(--ink-soft);}
+  .svc-grid .num-in{margin:0;padding:.4rem .55rem;text-align:right;}
+  table.tbl small{color:var(--ink-faint);font-weight:400;}
+
+</style>
+</head>
+<body>
+<div class="backdrop" id="backdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <button class="menu-btn" id="sidebarClose" aria-label="Закрыть меню" style="margin-bottom:.8rem;">✕</button>
+  <a href="index.html" class="sidebar-home">НаборНаВсе — главная</a>
+  <input type="text" class="sidebar-search" id="sidebarSearch" placeholder="Поиск по инструментам…" autocomplete="off">
+  <p class="sidebar-title">Кредиты и ипотека</p>
+  <a href="ipoteka-calculator.html">Ипотечный платёж</a>
+  <a href="dosrochnoe-pogashenie.html">Досрочное погашение</a>
+  <a href="kreditny-kalkulyator.html">Кредитный калькулятор</a>
+  <a href="avtokredit-calculator.html">Автокредит</a>
+  <a href="pereplata-po-kreditu.html">Переплата по кредиту</a>
+  <a href="annuitetnyj-i-differentsirovannyj-platezh.html">Аннуитетный и дифференцированный платёж</a>
+  <a href="grafik-platezhey.html">График платежей</a>
+  <a href="refinansirovanie.html">Рефинансирование</a>
+  <a href="ipoteka-s-materinskim-kapitalom.html" class="active">Ипотека с маткапиталом</a>
+  <a href="kreditnaya-karta-lgotnyj-period.html">Кредитная карта и льготный период</a>
+  <a href="psk-kredita.html">Полная стоимость кредита (ПСК)</a>
+  <a href="dolgovaya-nagruzka.html">Долговая нагрузка (ПДН)</a>
+  <p class="sidebar-title">Вклады и накопления</p>
+  <a href="vklad-protsenty.html">Вклад с капитализацией</a>
+  <a href="nakopleniya-na-tsel.html">Накопления на цель</a>
+  <a href="vklad-calculator.html">Пополняемый вклад</a>
+  <a href="inflyatsiya-calculator.html">Калькулятор инфляции</a>
+  <a href="pensiya-calculator.html">Пенсия и финансовая независимость</a>
+  <a href="investitsii-calculator.html">Доходность инвестиций</a>
+  <p class="sidebar-title">Налоги и работа</p>
+  <a href="zarplata-ndfl.html">Зарплата на руки (НДФЛ)</a>
+  <a href="otpusknye-calculator.html">Калькулятор отпускных</a>
+  <a href="bolnichny-calculator.html">Калькулятор больничного</a>
+  <a href="kompensatsiya-otpuska.html">Компенсация за неиспользованный отпуск</a>
+  <a href="kompensatsiya-pri-uvolnenii.html">Компенсация при увольнении</a>
+  <a href="nalogovy-vychet-lechenie.html">Налоговый вычет за лечение</a>
+  <a href="nalogovy-vychet-obuchenie.html">Налоговый вычет за обучение</a>
+  <a href="nalogovy-vychet-ipoteka.html">Налоговый вычет за ипотеку</a>
+  <a href="nalogovy-vychet-pokupka-kvartiry.html">Налоговый вычет за покупку квартиры</a>
+  <a href="nds-kalkulyator.html">Калькулятор НДС</a>
+  <a href="nalog-s-prodazhi-kvartiry-avto.html">Налог с продажи квартиры или авто</a>
+  <a href="imushchestvennye-nalogi.html">Транспортный, земельный, имущественный налог</a>
+  <a href="nalogi-samozanyatyh-ip.html">Налоги для самозанятых и ИП</a>
+  <a href="vychet-iis.html">Налоговый вычет по ИИС</a>
+  <a href="posobie-po-beremennosti-i-rodam.html">Пособие по беременности и родам</a>
+  <a href="strahovoy-stazh.html">Страховой стаж</a>
+  <a href="goshlina-kalkulyator.html">Госпошлина</a>
+  <a href="peni-zhkh-i-nalogi.html">Пени по ЖКХ и налогам</a>
+  <a href="alimenty-kalkulyator.html">Алименты</a>
+  <a href="kommunalnye-platezhi-kalkulyator.html">Коммунальные платежи</a>
+  <p class="sidebar-title">Даты и проценты</p>
+  <a href="protsenty-kalkulyator.html">Калькулятор процентов</a>
+  <a href="dni-mezhdu-datami.html">Дни между датами</a>
+  <a href="kalkulyator-vozrasta.html">Калькулятор возраста</a>
+  <a href="pribavit-dni-k-date.html">Прибавить или вычесть дни из даты</a>
+  <a href="rabochie-dni.html">Рабочие дни в месяце</a>
+  <a href="minuty-chasy-poyasa.html">Минуты в часы и часовые пояса</a>
+  <a href="drobi-okruglenie.html">Дроби и округление</a>
+  <a href="proportsii.html">Пропорции и правило трёх</a>
+  <a href="rimskie-tsifry.html">Римские цифры и системы счисления</a>
+  <p class="sidebar-title">Конвертеры</p>
+  <a href="konverter-izobrazheniy.html">Универсальный конвертер изображений</a>
+  <a href="izmenenie-razmera.html">Изменение размера изображений</a>
+  <a href="obrezka-izobrazheniy.html">Обрезка изображений</a>
+  <a href="szhatie-izobrazheniy.html">Сжатие изображений</a>
+  <a href="heic-v-jpg.html">HEIC в JPG</a>
+  <a href="jpg-v-pdf.html">JPG в PDF</a>
+  <a href="pdf-v-jpg.html">PDF в JPG</a>
+  <a href="obedinenie-szhatie-pdf.html">Объединение и сжатие PDF</a>
+  <a href="konverter-temperatury.html">Универсальный конвертер температуры</a>
+  <a href="konverter-dliny.html">Универсальный конвертер длины</a>
+  <a href="konverter-materialov.html">Площадь в материалы для ремонта</a>
+  <a href="edinitsy-izmereniya.html">Вес, объём, площадь, скорость</a>
+  <a href="davlenie-energiya-dannye.html">Давление, энергия, данные</a>
+  <a href="razmery-odezhdy-obuvi.html">Размеры одежды и обуви</a>
+  <a href="kulinarnye-mery.html">Кулинарные меры</a>
+  <a href="dyuymy-v-santimetry.html">Дюймы в сантиметры</a>
+  <a href="mili-v-kilometry.html">Мили в километры</a>
+  <a href="funty-v-kilogrammy.html">Фунты в килограммы</a>
+  <p class="sidebar-title">Текст</p>
+  <a href="schetchik-simvolov.html">Счётчик символов и слов</a>
+  <a href="smena-registra-translit.html">Смена регистра и транслитерация</a>
+  <p class="sidebar-title">Видео</p>
+  <a href="redaktor-video.html">Редактор видео</a>
+  <a href="szhatie-video.html">Сжатие видео</a>
+  <a href="video-v-gif.html">Видео в GIF</a>
+  <a href="izvlech-zvuk.html">Извлечь звук из видео</a>
+</nav>
+
+<div class="page" id="page">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="menu-btn" id="menuBtn" aria-label="Меню инструментов">☰</button>
+      <a class="logo" href="index.html">НаборНаВсе</a>
+      <button class="theme-btn" id="themeToggle" aria-label="Переключить тему">◐</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <header class="page-head">
+      <p class="brand">Кредиты и ипотека</p>
+      <h1>Ипотека с материнским капиталом</h1>
+      <p class="lede">Как капитал меняет сумму кредита, платёж и переплату, и что выгоднее: внести его в первый взнос или направить на досрочное погашение.</p>
+    </header>
+
+    <div class="panel">
+      <div class="inputs">
+        <p class="panel-eyebrow">Покупка</p>
+        <div class="field">
+          <div class="field-top"><label for="price">Стоимость жилья</label><input class="val-input" id="priceVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="price" min="500000" max="50000000" step="100000" value="6000000">
+          <div class="range-labels"><span>500 тыс.</span><span>50 млн</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="own">Свои средства на взнос</label><input class="val-input" id="ownVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="own" min="0" max="20000000" step="50000" value="900000">
+          <div class="range-labels"><span>0</span><span>20 млн</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="mk">Материнский капитал <button class="info-btn" type="button" data-term="mk" style="margin-left:6px;">?</button></label><input class="val-input" id="mkVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="mk" min="0" max="1500000" step="1000" value="728922">
+          <div class="range-labels"><span>0</span><span>1,5 млн</span></div>
+          <div class="chips">
+            <button type="button" class="chip" data-mk="728922">728 922 ₽ · первый ребёнок</button>
+            <button type="button" class="chip" data-mk="963243">963 243 ₽ · второй, капитала не было</button>
+            <button type="button" class="chip" data-mk="234321">234 321 ₽ · второй, капитал уже получали</button>
+          </div>
+          <p class="derived">Первоначальный взнос со своими средствами: <b id="dpOut">—</b></p>
+        </div>
+        <p class="panel-eyebrow spaced">Кредит</p>
+        <div class="field">
+          <div class="field-top"><label for="rate">Процентная ставка</label><input class="val-input" id="rateVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="rate" min="1" max="30" step="0.1" value="16">
+          <div class="range-labels"><span>1%</span><span>30%</span></div>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="years">Срок кредита</label><input class="val-input" id="yearsVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="years" min="1" max="30" step="1" value="20">
+          <div class="range-labels"><span>1 год</span><span>30 лет</span></div>
+        </div>
+        <p class="panel-eyebrow spaced">Если капитал уйдёт на досрочное погашение</p>
+        <div class="label-row"><label>После погашения</label><button class="info-btn" type="button" data-term="mode">?</button></div>
+        <div class="seg" id="modeToggle"><button type="button" data-v="payment" class="active">Снизить платёж</button><button type="button" data-v="term">Сократить срок</button></div>
+        <div class="field">
+          <div class="field-top"><label for="after">Через сколько месяцев после выдачи</label><input class="val-input" id="afterVal" type="text" inputmode="decimal"></div>
+          <input type="range" id="after" min="1" max="60" step="1" value="6">
+          <div class="range-labels"><span>1 мес.</span><span>60 мес.</span></div>
+        </div>
+        <p class="hint">Значение можно ввести вручную — кликните по числу.</p>
+      </div>
+
+      <div class="results">
+        <p class="panel-eyebrow" style="margin-bottom:.6rem;">Результат расчёта</p>
+        <p class="live-badge"><span class="live-dot"></span>Пересчитывается автоматически</p>
+        <p class="result-label">Платёж, если капитал идёт в первый взнос</p>
+        <p class="result-big" id="payA">—</p>
+        <p class="pill neutral" id="mkPill">—</p>
+
+        <div class="bar" aria-hidden="true">
+          <div class="bar-principal" id="barPrincipal" style="width:50%"></div>
+          <div class="bar-interest" id="barInterest" style="width:50%"></div>
+        </div>
+        <div class="bar-legend">
+          <span><span class="dot" style="background:var(--accent)"></span>Тело кредита</span>
+          <span><span class="dot" style="background:var(--accent-2)"></span>Проценты</span>
+        </div>
+
+        <div class="stat-row"><span class="k">Сумма кредита</span><span class="v" id="loanA">—</span></div>
+        <div class="stat-row"><span class="k">Переплата по процентам</span><span class="v" id="overA">—</span></div>
+        <div class="stat-row"><span class="k">Экономия против ипотеки без капитала</span><span class="v good" id="saveA">—</span></div>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head"><div><h2>Три варианта рядом</h2><p class="sub">Один и тот же кредит: без капитала, с капиталом в первом взносе и с досрочным погашением.</p></div></div>
+      <div class="tbl-wide">
+        <table class="tbl min">
+          <thead><tr><th></th><th>Без капитала</th><th>Капитал в первый взнос</th><th id="thEarly">Капитал на досрочное погашение</th></tr></thead>
+          <tbody id="mkRows"></tbody>
+        </table>
+      </div>
+    </section>
+    <p class="note" id="mkNote" style="margin-top:1rem;"></p>
+
+
+    <article>
+      <h2>Как использовать материнский капитал в ипотеке</h2>
+      <p>Капитал можно направить на первоначальный взнос по новой ипотеке или на погашение основного долга и процентов по уже оформленной. Деньги не выдают на руки: Социальный фонд переводит их напрямую банку или продавцу.</p>
+      <p>Размер капитала с 1 февраля 2026 года: 728 921,90 ₽ на первого ребёнка. На второго ребёнка — 963 243,17 ₽, если капитал на первого не получали, и 234 321,27 ₽, если получали. Размер индексируется каждый год, актуальную сумму смотрите на сайте Социального фонда России (sfr.gov.ru). Сумму в калькуляторе можно менять вручную.</p>
+      <h3>Как проходит оформление</h3>
+      <p>Заявление подают через Госуслуги, клиентскую службу Социального фонда или МФЦ. По данным открытых источников, фонд рассматривает заявление около 15 рабочих дней, а после одобрения перечисляет деньги банку в течение примерно 10 рабочих дней. Сроки могут отличаться, поэтому заранее уточните порядок расчётов у банка и продавца: при покупке деньги капитала поступают не в момент сделки, а позже.</p>
+      <h3>Что выгоднее: взнос или досрочное погашение</h3>
+      <p>Чем раньше капитал уменьшит долг, тем меньше процентов вы заплатите. Поэтому вклад в первый взнос обычно даёт чуть большую экономию, чем досрочное погашение через несколько месяцев, при условии что вы выбрали снижение платежа. Если после досрочного погашения сокращать срок, платёж останется прежним, а переплата станет заметно ниже. Но и нагрузка на бюджет выше, чем при взносе. Сравнивайте варианты по платежу и сроку вместе, а не только по переплате.</p>
+      <h3>Доли детям</h3>
+      <p>Когда ипотека погашена и обременение снято, у вас есть шесть месяцев, чтобы оформить жильё в общую собственность родителей и всех детей. Нарушение этого срока может привести к оспариванию сделки.</p>
+      <h3>Налоговый вычет</h3>
+      <p>Часть процентов, которую вы погасили за счёт материнского капитала, в налоговый вычет по ипотеке не входит.</p>
+      <h3>Что не учитывает калькулятор</h3>
+      <p>Платёж считается как аннуитетный, проценты начисляются по месяцам. В расчёт не входят страхование, комиссии, требования банка к минимальному взносу и льготные программы. Условия вашего банка и программы Социального фонда нужно проверить отдельно.</p>
+      <p class="related">Смотрите также: <a href="ipoteka-calculator.html">ипотечный платёж</a>, <a href="dosrochnoe-pogashenie.html">досрочное погашение</a>, <a href="grafik-platezhey.html">график платежей</a>.</p>
+      <p class="disclaimer">Расчёт носит справочный характер и не является финансовой консультацией.</p>
+    </article>
+
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><p>© НаборНаВсе — справочные калькуляторы и конвертеры. <a href="politika-konfidentsialnosti.html" style="color:inherit;text-decoration:underline;">Политика конфиденциальности</a></p></div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">—</h3>
+    <div id="modalBody"></div>
+    <button class="modal-close" id="modalClose">Понятно</button>
+  </div>
+</div>
+
+<script>
+(function(){
+/* ===== общие расчётные функции сайта НаборНаВсе ===== */
+function $(id){ return document.getElementById(id); }
+function r2(x){ return Math.round(x*100)/100; }
+function annuityPay(P, i, n){
+  if(n<=0) return P;
+  return i===0 ? P/n : P*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
+}
+/* График с точностью до копеек: платёж округляется, последний платёж закрывает остаток */
+function buildSchedule(P, annualRate, n, scheme){
+  var i=annualRate/100/12, bal=r2(P), rows=[];
+  var M = scheme==='annuitet' ? r2(annuityPay(P,i,n)) : 0;
+  var base = r2(P/n);
+  for(var k=1;k<=n;k++){
+    var interest=r2(bal*i), principal, pay;
+    if(k===n){ principal=bal; pay=r2(principal+interest); }
+    else if(scheme==='annuitet'){ pay=M; principal=r2(M-interest); }
+    else { principal=base; pay=r2(principal+interest); }
+    bal=r2(bal-principal);
+    rows.push({k:k, pay:pay, principal:principal, interest:interest, balance:bal<0?0:bal});
+  }
+  return rows;
+}
+function sumField(rows, f){ var s=0; for(var j=0;j<rows.length;j++) s+=rows[j][f]; return s; }
+
+function addMonths(d, k){
+  var y=d.getFullYear(), m=d.getMonth()+k, day=d.getDate();
+  var last=new Date(y, m+1, 0).getDate();
+  return new Date(y, m, Math.min(day,last));
+}
+function pad2(v){ return (v<10?'0':'')+v; }
+function fmtDate(d){ return pad2(d.getDate())+'.'+pad2(d.getMonth()+1)+'.'+d.getFullYear(); }
+function toISO(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+
+function money(n){ return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+function moneySigned(n){ return (n<0?'−':'') + money(Math.abs(n)); }
+function money2(n){ return n.toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pct(n){ return n.toFixed(1).replace('.',',') + '%'; }
+function fmtInt(v){ return String(Math.round(v)); }
+function fmtDec(v){ return String(v); }
+function plural(n, one, few, many){
+  var m10=n%10, m100=n%100;
+  if(m10===1 && m100!==11) return one;
+  if(m10>=2 && m10<=4 && (m100<10||m100>=20)) return few;
+  return many;
+}
+function termText(months){
+  var y=Math.floor(months/12), m=months%12, parts=[];
+  if(y) parts.push(y+' '+plural(y,'год','года','лет'));
+  if(m) parts.push(m+' мес.');
+  return parts.length ? parts.join(' ') : '0 мес.';
+}
+function monthsText(v){ return Math.round(v)+' мес.'; }
+function daysText(v){ var d=Math.round(v); return d+' '+plural(d,'день','дня','дней'); }
+function shortMoney(v){
+  function t(x){ return (Math.round(x*10)/10).toString().replace('.',','); }
+  if(v>=1e6) return t(v/1e6)+' млн';
+  if(v>=1e3) return t(v/1e3)+' тыс.';
+  return String(Math.round(v));
+}
+/* верх шкалы: 4 одинаковых «круглых» шага (1, 2, 2.5, 5 × 10^k), покрывающих v */
+function niceMax(v){
+  if(v<=0) return 4;
+  var raw=v/4, p=Math.pow(10, Math.floor(Math.log(raw)/Math.LN10)), f=raw/p;
+  var nf = f<=1 ? 1 : f<=2 ? 2 : f<=2.5 ? 2.5 : f<=5 ? 5 : 10;
+  return nf*p*4;
+}
+
+/* Рефинансирование: сравнение по оставшемуся сроку */
+function refi(B, rOld, nOld, rNew, nNew, costs){
+  var mOld=annuityPay(B,rOld/1200,nOld), mNew=annuityPay(B,rNew/1200,nNew);
+  var totOld=mOld*nOld, totNew=mNew*nNew;
+  var saving=totOld-(totNew+costs);
+  var payback=null;
+  if(saving>0 && costs>0){
+    var cumOld=0, cumNew=0, nmax=Math.max(nOld,nNew);
+    for(var k=1;k<=nmax;k++){
+      if(k<=nOld) cumOld+=mOld;
+      if(k<=nNew) cumNew+=mNew;
+      if(cumOld-cumNew-costs>=0){ payback=k; break; }
+    }
+  }
+  return {mOld:mOld, mNew:mNew, totOld:totOld, totNew:totNew, overOld:totOld-B, overNew:totNew-B+costs, saving:saving, payback:payback};
+}
+
+/* Досрочное погашение суммой mk после after-го платежа.
+   mode 'term': платёж прежний, срок сокращается; mode 'payment': срок прежний, платёж пересчитывается */
+function simEarly(P, annualRate, n, mk, after, mode){
+  var i=annualRate/100/12, bal=r2(P), M=r2(annuityPay(P,i,n)), months=0, interest=0, payAfter=M;
+  if(P<=0) return {months:0, interest:0, pay:0, payAfter:0};
+  while(bal>0.004 && months<n+1){
+    var ip=r2(bal*i), pay=M;
+    if(pay>=bal+ip || months+1===n) pay=r2(bal+ip);
+    bal=r2(bal-(pay-ip)); interest+=ip; months++;
+    if(months===after && bal>0){
+      bal=r2(Math.max(0, bal-mk));
+      if(mode==='payment' && bal>0 && n-months>0){ M=r2(annuityPay(bal,i,n-months)); payAfter=M; }
+      else if(mode==='payment'){ payAfter=0; }
+    }
+  }
+  return {months:months, interest:interest, pay:r2(annuityPay(P,i,n)), payAfter:payAfter};
+}
+
+/* Льготный период карты */
+function graceInterest(P, annualRate, grace, days, method){
+  if(days<=grace) return {interest:0, accrualDays:0};
+  var d = method==='purchase' ? days : days-grace;
+  return {interest:P*annualRate/100/365*d, accrualDays:d};
+}
+/* Погашение карты минимальными платежами: платёж = процент от долга с процентами, но не меньше floor */
+function simMinPayment(P, annualRate, pctMin, floor){
+  var i=annualRate/100/12, bal=P, months=0, interestSum=0, first=0, last=0, firstInterest=0, cap=1200;
+  while(bal>0.005 && months<cap){
+    var ip=bal*i, due=bal+ip;
+    var pay=Math.max(pctMin/100*due, floor);
+    if(pay>=due) pay=due;
+    if(months===0){ first=pay; firstInterest=ip; }
+    bal=due-pay; interestSum+=ip; months++; last=pay;
+  }
+  return {months:months, interest:interestSum, first:first, last:last, firstInterest:firstInterest, finished:bal<=0.005};
+}
+
+/* ===== общий каркас страницы (версия для сайта): меню с поиском и сворачиванием, тема, подсказки, поля ввода ===== */
+(function(){
+  var sb=document.getElementById('sidebar');
+  if(!sb) return;
+  var titles=Array.prototype.slice.call(sb.querySelectorAll('.sidebar-title'));
+  var sections=titles.map(function(t){
+    var items=[], el=t.nextElementSibling;
+    while(el && !el.classList.contains('sidebar-title')){ items.push(el); el=el.nextElementSibling; }
+    return {title:t, items:items, collapsed:false};
+  });
+  var CKEY='nabor-sidebar-collapsed-v2';
+  var overrides={};
+  try{ overrides=JSON.parse(localStorage.getItem(CKEY)||'{}'); }catch(e){}
+  sections.forEach(function(s){
+    var key=s.title.textContent.trim();
+    var hasActive=s.items.some(function(it){ return it.classList && it.classList.contains('active'); });
+    s.collapsed = overrides.hasOwnProperty(key) ? !!overrides[key] : !hasActive;
+  });
+  var search=document.getElementById('sidebarSearch');
+  function query(){ return search ? search.value.trim().toLowerCase() : ''; }
+  function render(){
+    var q=query();
+    sections.forEach(function(s){
+      if(q){
+        var any=false;
+        s.items.forEach(function(it){
+          var ok=it.textContent.toLowerCase().indexOf(q)!==-1;
+          it.classList.toggle('sidebar-item-hidden', !ok);
+          if(ok) any=true;
+        });
+        s.title.classList.remove('collapsed');
+        s.title.style.display = any ? '' : 'none';
+      } else {
+        s.title.style.display='';
+        s.title.classList.toggle('collapsed', s.collapsed);
+        s.items.forEach(function(it){ it.classList.toggle('sidebar-item-hidden', s.collapsed); });
+      }
+    });
+  }
+  sections.forEach(function(s){
+    s.title.addEventListener('click', function(){
+      if(query()) return;
+      s.collapsed=!s.collapsed;
+      overrides[s.title.textContent.trim()]=s.collapsed;
+      try{ localStorage.setItem(CKEY, JSON.stringify(overrides)); }catch(e){}
+      render();
+    });
+  });
+  if(search){ search.addEventListener('input', render); }
+  render();
+})();
+
+var menuBtn=$('menuBtn'), backdrop=$('backdrop'), sidebarClose=$('sidebarClose');
+var navScrollY=0;
+function openNav(){
+  navScrollY=window.scrollY||window.pageYOffset||0;
+  document.body.style.top='-'+navScrollY+'px';
+  document.body.classList.add('nav-open');
+}
+function closeNav(){
+  if(!document.body.classList.contains('nav-open')) return;
+  document.body.classList.remove('nav-open');
+  document.body.style.top='';
+  window.scrollTo(0, navScrollY);
+}
+menuBtn.addEventListener('click', function(){ document.body.classList.contains('nav-open') ? closeNav() : openNav(); });
+backdrop.addEventListener('click', closeNav);
+sidebarClose.addEventListener('click', closeNav);
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){ closeNav(); closeModal(); } });
+
+try{ var savedTheme=localStorage.getItem('podschet-theme'); if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme); }catch(e){}
+$('themeToggle').addEventListener('click', function(){
+  var cur=document.documentElement.getAttribute('data-theme');
+  var next = cur==='dark' ? 'light' : (cur==='light' ? null : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+  if(next){ document.documentElement.setAttribute('data-theme', next); } else { document.documentElement.removeAttribute('data-theme'); }
+  try{ localStorage.setItem('podschet-theme', next || ''); }catch(e){}
+});
+
+var modalBackdrop=$('modalBackdrop'), modalTitle=$('modalTitle'), modalBody=$('modalBody');
+function openModal(t){ if(!t) return; modalTitle.textContent=t.title; modalBody.innerHTML=t.html; modalBackdrop.classList.add('open'); }
+function closeModal(){ modalBackdrop.classList.remove('open'); }
+document.querySelectorAll('.info-btn').forEach(function(btn){ btn.addEventListener('click', function(){ openModal(TERMS[btn.dataset.term]); }); });
+$('modalClose').addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
+
+function paintRange(el){
+  var min=parseFloat(el.min), max=parseFloat(el.max), val=parseFloat(el.value);
+  var p=Math.min(100,Math.max(0,(val-min)/(max-min)*100));
+  el.style.background='linear-gradient(to right, var(--accent) '+p+'%, var(--line) '+p+'%)';
+}
+/* Введённое вручную значение сохраняется точно: пока шаг ползунка 'any', значение не «прилипает».
+   Как только человек берётся за ползунок, прежний шаг возвращается. */
+function setRangeValue(rangeEl, num){
+  if(!rangeEl.dataset.step) rangeEl.dataset.step=rangeEl.getAttribute('step')||'1';
+  rangeEl.step='any'; rangeEl.value=num;
+}
+function makeEditable(rangeEl, valEl, min, max, formatDisplay, formatEdit){
+  rangeEl.dataset.step=rangeEl.getAttribute('step')||'1';
+  function tight(){ if(rangeEl.step==='any') rangeEl.step=rangeEl.dataset.step; }
+  rangeEl.addEventListener('pointerdown', tight);
+  rangeEl.addEventListener('keydown', tight);
+  function sync(){ valEl.value = formatDisplay(parseFloat(rangeEl.value)); paintRange(rangeEl); }
+  rangeEl.addEventListener('input', function(){ sync(); calc(); });
+  valEl.addEventListener('focus', function(){ valEl.value = formatEdit(parseFloat(rangeEl.value)); valEl.select(); });
+  function commit(){
+    var raw = valEl.value.replace(',', '.').replace(/[^0-9.\-]/g,'');
+    var num = parseFloat(raw);
+    if(isNaN(num)) num = parseFloat(rangeEl.value);
+    num = Math.min(max, Math.max(min, num));
+    setRangeValue(rangeEl, num); sync(); calc();
+  }
+  valEl.addEventListener('blur', commit);
+  valEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ valEl.blur(); } });
+  sync();
+}
+/* переключатель из кнопок: выбранное значение читается из data-v */
+function bindSeg(id, onChange){
+  var wrap=$(id), btns=wrap.querySelectorAll('button');
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active'); onChange(btn.dataset.v);
+    });
+  });
+}
+
+
+var TERMS={
+  mk:{title:'Материнский капитал', html:'<p>В поле можно ввести ту сумму капитала, которая у вас остаётся. Кнопки под полем подставляют размеры на 2026 год.</p><p>Капитал не выдают наличными: он идёт на взнос или на погашение долга по ипотеке.</p>'},
+  mode:{title:'Снизить платёж или сократить срок', html:'<p><strong>Снизить платёж</strong>: срок кредита остаётся прежним, ежемесячный платёж пересчитывается вниз.</p><p><strong>Сократить срок</strong>: платёж остаётся прежним, кредит закрывается раньше, переплата ниже.</p>'}
+};
+var price=$('price'), own=$('own'), mkEl=$('mk'), rate=$('rate'), years=$('years'), after=$('after');
+var mode='payment';
+function yearsText(v){ var y=Math.round(v); return y+' '+plural(y,'год','года','лет'); }
+bindSeg('modeToggle', function(v){ mode=v; calc(); });
+makeEditable(price,$('priceVal'),500000,50000000,money,fmtInt);
+makeEditable(own,$('ownVal'),0,20000000,money,fmtInt);
+setRangeValue(mkEl, 728922);
+makeEditable(mkEl,$('mkVal'),0,1500000,money,fmtInt);
+makeEditable(rate,$('rateVal'),1,30,pct,fmtDec);
+makeEditable(years,$('yearsVal'),1,30,yearsText,fmtInt);
+makeEditable(after,$('afterVal'),1,60,monthsText,fmtInt);
+document.querySelectorAll('.chip').forEach(function(c){
+  c.addEventListener('click', function(){ setRangeValue(mkEl, +c.dataset.mk); mkEl.dispatchEvent(new Event('input')); });
+});
+
+function calc(){
+  var Price=+price.value, Own=+own.value, MK=+mkEl.value, r=+rate.value, n=Math.round(+years.value)*12;
+  var m=Math.min(Math.round(+after.value), n-1);
+  var base=Math.max(0, Price-Own), loanA=Math.max(0, Price-Own-MK);
+  var sB=buildSchedule(base,r,n,'annuitet'), sA=buildSchedule(loanA,r,n,'annuitet');
+  var oB=sumField(sB,'interest'), oA=sumField(sA,'interest');
+  var E=simEarly(base,r,n,MK,m,mode), oC=E.interest;
+  var dp=Own+MK;
+  $('dpOut').textContent=money(dp)+' ('+pct(Price>0?dp/Price*100:0)+')';
+
+  $('payA').innerHTML=money(sA[0].pay)+'<small>/ мес</small>';
+  var pill=$('mkPill'), drop=sB[0].pay-sA[0].pay;
+  if(MK>0 && base>0){ pill.className='pill good'; pill.textContent='Платёж ниже на '+money(drop)+' в месяц'; }
+  else { pill.className='pill neutral'; pill.textContent='Капитал не используется'; }
+  $('loanA').textContent=money(loanA); $('overA').textContent=money(oA); $('saveA').textContent=money(oB-oA);
+  var total=loanA+oA, share=total>0?loanA/total*100:100;
+  $('barPrincipal').style.width=share+'%'; $('barInterest').style.width=(100-share)+'%';
+
+  $('thEarly').textContent='Капитал на досрочное погашение, через '+m+' мес.';
+  var earlyPay = MK<=0 ? money(sB[0].pay) : (mode==='payment' ? money(sB[0].pay)+' → '+money(E.payAfter) : money(sB[0].pay)+' (прежний)');
+  var earlyTerm = termText(mode==='term' ? E.months : n);
+  var best = (oA<=oC) ? 'A' : 'C';
+  function row(label, b, a, c, hlA, hlC){ return '<tr><td class="lbl">'+label+'</td><td>'+b+'</td><td'+(hlA?' class="hl"':'')+'>'+a+'</td><td'+(hlC?' class="hl"':'')+'>'+c+'</td></tr>'; }
+  var html='';
+  html+=row('Сумма кредита', money(base), money(loanA), money(base));
+  html+=row('Платёж в месяц', money(sB[0].pay), money(sA[0].pay), earlyPay);
+  html+=row('Срок', termText(n), termText(n), earlyTerm);
+  html+=row('Переплата', money(oB), money(oA), money(oC), MK>0&&best==='A', MK>0&&best==='C');
+  html+=row('Экономия на переплате', '—', money(oB-oA), money(oB-oC));
+  $('mkRows').innerHTML=html;
+
+  var note=$('mkNote');
+  if(mode==='payment') note.textContent='При снижении платежа срок остаётся прежним, поэтому результат близок к взносу, но немного хуже: капитал уменьшает долг на несколько месяцев позже.';
+  else note.textContent='При сокращении срока платёж остаётся прежним, поэтому переплата ниже, но нагрузка на бюджет выше, чем при взносе капиталом. Сравнивайте платёж и срок вместе с переплатой.';
+}
+calc();
+
+})();
+</script>
+<script src="cookie-consent.js" defer></script>
+</body>
+</html>
